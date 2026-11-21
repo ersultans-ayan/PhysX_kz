@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Salybek Yersultan, Zhenis Ayan">
+<meta name="description" content="Бұл сайттың авторлары — Salybek Yersultan, Zhenis Ayan.">
+<title>PhysX — Физика Порталы</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- Supabase SDK қосылды -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg-color:#0b0f19;--card-bg:#151c2c;--accent-color:#00f2fe;--accent-gradient:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);--text-color:#e2e8f0;--text-muted:#94a3b8;--border-color:#2a354f;--danger-color:#ff4b5c;--success-color:#00e676}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+body{background:var(--bg-color);color:var(--text-color);min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:var(--bg-color)}::-webkit-scrollbar-thumb{background:var(--border-color);border-radius:4px}
+.page-section{display:none;padding:20px;max-width:1200px;margin:0 auto;width:100%}
+.page-section.active{display:block;animation:fadeIn .3s ease-in-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+input,select,textarea,button{background:var(--card-bg);border:1px solid var(--border-color);color:var(--text-color);padding:10px 14px;border-radius:8px;outline:none;font-size:14px}
+input:focus,select:focus{border-color:var(--accent-color);box-shadow:0 0 8px rgba(0,242,254,.3)}
+button{background:var(--accent-gradient);color:#000;font-weight:bold;cursor:pointer;border:none;transition:.2s}
+button:hover{opacity:.9;transform:translateY(-1px)}
+.muted{color:var(--text-muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px;margin-bottom:10px}
+.auth-container{max-width:420px;margin:60px auto;background:var(--card-bg);padding:35px;border-radius:16px;border:1px solid var(--border-color);text-align:center}
+.auth-container h1{font-size:2.2rem;background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px}
+.auth-form{display:flex;flex-direction:column;gap:15px;margin-top:20px}
+.auth-switch{margin-top:15px;color:var(--text-muted);font-size:13px}
+.auth-switch span{color:var(--accent-color);cursor:pointer;text-decoration:underline}
+header{background:var(--card-bg);border-bottom:1px solid var(--border-color);padding:12px 25px;display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:100}
+.logo-container{display:flex;align-items:center;gap:8px}
+.logo-container h2{background:var(--accent-gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:1.6rem}
+nav{display:flex;gap:8px;flex-wrap:wrap}
+nav button{background:transparent;color:var(--text-color);padding:6px 12px;font-size:13px;border:1px solid transparent}
+nav button:hover,nav button.active-nav{background:rgba(0,242,254,.1);border-color:var(--accent-color);color:var(--accent-color)}
+.user-profile-badge{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);padding:5px 12px;border-radius:20px;border:1px solid var(--border-color)}
+.avatar-img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--accent-color)}
+.dashboard-grid{display:grid;grid-template-columns:1fr 2fr;gap:20px;margin-top:15px}
+.card-panel{background:var(--card-bg);border-radius:12px;border:1px solid var(--border-color);padding:20px;margin-bottom:15px}
+.card-panel h3{border-bottom:1px solid var(--border-color);padding-bottom:10px;margin-bottom:15px;color:var(--accent-color);font-size:16px}
+.user-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid var(--border-color);border-radius:8px;margin-bottom:8px;gap:8px}
+.user-item-info{display:flex;align-items:center;gap:10px}
+.user-item-info img{width:32px;height:32px;border-radius:50%;object-fit:cover}
+.chat-container{display:flex;flex-direction:column;background:var(--card-bg);border-radius:12px;border:1px solid var(--border-color)}
+.chat-header{padding:12px;border-bottom:1px solid var(--border-color);display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.2)}
+.chat-messages{padding:15px;height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.message{max-width:80%;padding:8px 12px;border-radius:10px;font-size:13px;line-height:1.4;word-break:break-word}
+.message small{display:block;font-size:9px;opacity:.6;margin-top:3px}
+.message.sent{align-self:flex-end;background:var(--accent-gradient);color:#000}
+.message.received{align-self:flex-start;background:var(--border-color);color:#fff}
+.message.fx{font-family:Consolas,monospace;border:1px dashed currentColor}
+.chat-input-area{padding:12px;border-top:1px solid var(--border-color);display:flex;flex-direction:column;gap:10px;background:rgba(0,0,0,.1)}
+.chip-row{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:12px;padding:6px 10px;background:rgba(0,242,254,.08);color:var(--accent-color);border:1px solid var(--border-color);border-radius:16px;cursor:pointer}
+.chip.on,.chip:hover{background:var(--accent-color);color:#000}
+.chat-preset-formulas-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:150px;overflow-y:auto;padding:6px;border:1px solid rgba(255,255,255,.05);border-radius:8px;background:rgba(0,0,0,.2)}
+.chat-preset-formulas-grid button{font-size:11px;padding:6px 8px;text-align:left;background:rgba(0,242,254,.08);color:var(--accent-color);border:1px solid var(--border-color);border-radius:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{color:var(--text-color);font-size:15px;margin:18px 0 10px;padding-left:10px;border-left:3px solid var(--accent-color)}
+.formula-card{background:rgba(255,255,255,.02);border:1px solid var(--border-color);padding:14px;border-radius:8px}
+.formula-title{font-weight:bold;color:var(--text-color);font-size:14px;margin-bottom:8px}
+.formula-math-text{font-family:Consolas,'Courier New',monospace;font-size:17px;background:rgba(0,0,0,.4);padding:10px 12px;border-radius:6px;color:var(--accent-color);border-left:4px solid var(--accent-color);font-weight:bold;word-break:break-word;text-align:center}
+.calc-box{max-width:340px;margin:0 auto;background:#080c14;border:1px solid var(--border-color);border-radius:12px;padding:15px}
+.calc-screen{width:100%;height:55px;background:#111726;text-align:right;font-size:22px;color:var(--accent-color);font-family:monospace;margin-bottom:12px}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.calc-btn{padding:14px;font-size:15px;background:var(--card-bg);border:1px solid var(--border-color);color:#fff;border-radius:6px}
+.calc-btn.op{background:rgba(0,242,254,.1);color:var(--accent-color)}
+.bio-card{background:rgba(255,255,255,.02);border:1px solid var(--border-color);padding:22px;border-radius:12px;margin-bottom:15px;box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+.bio-card h4{color:var(--accent-color);font-size:20px;margin-bottom:4px}
+.bio-card .era{font-size:12px;color:var(--text-muted);font-weight:bold;margin-bottom:12px;text-transform:uppercase}
+.bio-card p{font-size:14px;line-height:1.8;color:#cbd5e1}
+.lab-canvas-container{background:linear-gradient(145deg, #131c31, #080c14);border:1px solid var(--accent-color);border-radius:14px;padding:18px;display:flex;flex-direction:column;align-items:center;box-shadow:0 8px 25px rgba(0,242,254,0.15)}
+canvas{background:#060911;border-radius:10px;border:1px solid var(--border-color);width:100%;height:200px}
+.lab-controls{margin-top:14px;width:100%;display:flex;flex-direction:column;gap:10px}
+.lab-control-group{display:flex;justify-content:space-between;align-items:center;font-size:12px;gap:8px;background:rgba(255,255,255,.03);padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.05)}
+.lab-btn-group{display:flex;gap:10px;margin-top:10px}.lab-btn-group button{flex:1;padding:9px;font-size:12px}
+.solver-card{background:rgba(255,255,255,.02);border:1px solid var(--border-color);padding:15px;border-radius:10px}
+.solver-card h4{color:var(--accent-color);font-size:15px;margin-bottom:6px}
+.solver-inputs{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+.solver-inputs input{font-size:13px;padding:7px 10px}
+.solution{margin-top:10px;font-size:13px;line-height:1.8;background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);padding:10px;border-radius:8px;word-break:break-word}
+.solution b{color:var(--accent-color)}.solution .ans{color:var(--success-color);font-weight:bold;font-size:15px}
+@media(max-width:768px){
+header{flex-direction:column;align-items:stretch;padding:10px}
+nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav button{white-space:nowrap;flex:0 0 auto}
+.user-profile-badge{justify-content:space-between}
+.page-section{padding:12px}.dashboard-grid{grid-template-columns:1fr}
+.auth-container{margin:20px auto;padding:22px}.card-panel{padding:14px}
+.message{max-width:90%}input,select{font-size:16px}
+.chat-preset-formulas-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header id="main-header" style="display:none">
+  <div class="logo-container"><i class="fa-solid fa-atom" style="color:var(--accent-color);font-size:20px"></i><h2>PhysX</h2></div>
+  <nav>
+    <button onclick="showPage('dashboard')" id="nav-dashboard" class="active-nav"><i class="fa-solid fa-house"></i> Басты бет</button>
+    <button onclick="showPage('labs')" id="nav-labs"><i class="fa-solid fa-flask"></i> Виртуалды зертхана</button>
+    <button onclick="showPage('formulas')" id="nav-formulas"><i class="fa-solid fa-square-root-variable"></i> Формулалар</button>
+    <button onclick="showPage('solver')" id="nav-solver"><i class="fa-solid fa-sliders"></i> Есептеуіш</button>
+    <button onclick="showPage('calc')" id="nav-calc"><i class="fa-solid fa-calculator"></i> Калькулятор</button>
+    <button onclick="showPage('scientists')" id="nav-scientists"><i class="fa-solid fa-user-graduate"></i> Ғалымдар</button>
+  </nav>
+  <div class="user-profile-badge">
+    <img id="header-avatar" class="avatar-img" alt="Avatar">
+    <div style="display:flex;flex-direction:column"><span id="header-fullname" style="font-weight:bold;font-size:13px">-</span><span id="header-username" class="muted">-</span></div>
+    <button onclick="logout()" style="padding:4px 8px;background:rgba(255,75,92,.2);color:var(--danger-color);font-size:11px">Шығу</button>
+  </div>
+</header>
+
+<section id="page-login" class="page-section active"><div class="auth-container">
+  <i class="fa-solid fa-atom" style="font-size:45px;color:var(--accent-color)"></i><h1>PhysX</h1>
+  <p class="muted" style="font-size:13px">Физиктерге арналған интерактивті портал</p>
+  <form id="form-login" class="auth-form" onsubmit="handleLogin(event)">
+    <input type="text" id="login-username" placeholder="Логин" required autocomplete="off">
+    <input type="password" id="login-password" placeholder="Пароль" required autocomplete="off">
+    <button type="submit">Кіру</button></form>
+  <div class="auth-switch"><span onclick="showAuthPage('forgot')" style="color:var(--danger-color)">Парольді ұмыттыңыз ба?</span></div>
+  <div class="auth-switch">Тіркелмегенсіз бе? <span onclick="showAuthPage('register')">Тіркелу</span></div>
+</div></section>
+
+<section id="page-register" class="page-section"><div class="auth-container">
+  <h1>Тіркелу</h1>
+  <form id="form-register" class="auth-form" onsubmit="handleRegister(event)">
+    <input type="text" id="reg-fullname" placeholder="Аты-жөніңіз" required autocomplete="off">
+    <input type="text" id="reg-username" placeholder="Логин (мысалы: user123)" required autocomplete="off">
+    <input type="password" id="reg-password" placeholder="Пароль" required autocomplete="off">
+    <button type="submit">Тіркелуді аяқтау</button></form>
+  <div class="auth-switch">Тіркелгенсіз бе? <span onclick="showAuthPage('login')">Кіру</span></div>
+</div></section>
+
+<section id="page-forgot" class="page-section"><div class="auth-container">
+  <h1 style="font-size:1.6rem">Парольді қалпына келтіру</h1>
+  <form id="form-forgot" class="auth-form" onsubmit="handleForgotPassword(event)">
+    <input type="text" id="forgot-username" placeholder="Логин" required autocomplete="off">
+    <input type="password" id="forgot-new-password" placeholder="Жаңа пароль" required autocomplete="off">
+    <button type="submit">Парольді өзгерту</button></form>
+  <div class="auth-switch">Оралу: <span onclick="showAuthPage('login')">Кіру</span></div>
+</div></section>
+
+<section id="page-dashboard" class="page-section"><div class="dashboard-grid">
+  <div>
+    <div class="card-panel" style="text-align:center">
+      <img id="dash-avatar" class="avatar-img" style="width:80px;height:80px" alt="Avatar">
+      <h2 id="dash-fullname" style="font-size:18px;margin-top:8px">---</h2>
+      <p id="dash-username" class="muted">@---</p>
+      <div style="margin-top:12px"><label for="avatar-input" style="cursor:pointer;background:rgba(0,242,254,.1);border:1px solid var(--accent-color);color:var(--accent-color);padding:6px 10px;border-radius:6px;font-size:11px"><i class="fa-solid fa-upload"></i> Аватарды жүктеу</label>
+      <input type="file" id="avatar-input" accept="image/*" style="display:none" onchange="uploadAvatar(event)"></div>
+    </div>
+    <div class="card-panel"><h3><i class="fa-solid fa-user-plus"></i> Дос іздеу</h3>
+      <div style="display:flex;gap:8px;margin-bottom:10px"><input type="text" id="search-friend-input" placeholder="Логин немесе аты..." style="flex:1;min-width:0"><button onclick="searchFriend()"><i class="fa-solid fa-search"></i></button></div>
+      <div id="search-result"></div></div>
+    <div class="card-panel"><h3><i class="fa-solid fa-clock"></i> Шақырулар</h3><div id="friend-requests-list"></div></div>
+  </div>
+  <div>
+    <div class="card-panel"><h3><i class="fa-solid fa-users"></i> Достар тізімі</h3><div id="friends-list"></div></div>
+    <div class="chat-container">
+      <div class="chat-header"><img id="chat-target-avatar" style="width:30px;height:30px;border-radius:50%"><div><div id="chat-target-name" style="font-weight:bold;font-size:13px">Досты таңдаңыз</div><div style="font-size:10px;color:var(--success-color)">Онлайн</div></div></div>
+      <div class="chat-messages" id="chat-messages-box"></div>
+      <div class="chat-input-area">
+        <div class="chip-row">
+          <button class="chip" onclick="sendRandomProblem()">🎲 Есеп жіберу</button>
+          <button class="chip" onclick="sendFact()">💡 Физика факті</button>
+          <button class="chip" onclick="sendAnswerCheck()">✅ Жауап жіберу</button>
+          <button class="chip" onclick="togglePicker()">📐 Формула</button>
+          <button class="chip" onclick="clearChat()">🗑 Тазалау</button>
+        </div>
+        <div id="picker" style="display:none">
+          <select id="chat-sec" onchange="renderPicker()" style="width:100%;margin-bottom:6px"></select>
+          <div class="chat-preset-formulas-grid" id="chat-presets"></div>
+        </div>
+        <div style="display:flex;gap:8px"><input type="text" id="chat-input" placeholder="Хабарламаңыз..." style="flex:1;min-width:0" onkeydown="if(event.key==='Enter')sendChatMessage()"><button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<section id="page-labs" class="page-section"><div class="card-panel">
+  <h3><i class="fa-solid fa-flask"></i> Виртуалды зертхана</h3>
+  <p class="muted" style="margin-bottom:15px">Жетілдірілген визуалды физикалық зертхана. Параметрлерді өзгертіп, нақты уақыттағы өзгерістерді бақылаңыз.</p>
+  <div id="labs-grid" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:20px"></div>
+</div></section>
+
+<section id="page-formulas" class="page-section"><div class="card-panel">
+  <h3><i class="fa-solid fa-book"></i> Физикалық формулалар базасы</h3>
+  <input type="text" id="formula-search" placeholder="Формула аты немесе өрнек бойынша іздеу..." oninput="renderFormulas()" style="width:100%;margin-bottom:12px">
+  <div id="formula-tabs" class="chip-row" style="margin-bottom:8px"></div>
+  <div id="formulas-container"></div>
+</div></section>
+
+<section id="page-solver" class="page-section"><div class="card-panel">
+  <h3><i class="fa-solid fa-sliders"></i> Есептеуіш ( формулалар базасы)</h3>
+  <p class="muted" style="margin-bottom:12px">Қажетті формула немесе шаманы таңдап, мәндерді енгізіңіз — сайт «Берілгені → Формула → Шешуі → Жауабы» түрінде толық есептеп береді.</p>
+  <input type="text" id="solver-search" placeholder="Формуланы іздеу (мысалы: Жылдамдық, Қуат, Импульс...)..." oninput="renderSolvers()" style="width:100%;margin-bottom:12px">
+  <div id="solver-container" class="grid" style="grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:15px"></div>
+</div></section>
+
+<section id="page-calc" class="page-section"><div class="card-panel" style="text-align:center">
+  <h3><i class="fa-solid fa-calculator"></i> Калькулятор</h3>
+  <div class="calc-box" style="margin-top:15px"><input type="text" class="calc-screen" id="calc-screen" readonly value="0"><div class="calc-grid" id="calc-grid"></div></div>
+</div></section>
+
+<section id="page-scientists" class="page-section"><div class="card-panel">
+  <h3><i class="fa-solid fa-book-open-reader"></i> Физик ғалымдар өмірбаяны </h3>
+  <p class="muted" style="margin-bottom:15px"></p>
+  <input type="text" id="scientist-search" placeholder="Ғалымның атын іздеу..." oninput="filterScientists()" style="width:100%;margin-bottom:15px">
+  <div id="scientists-container"></div>
+</div></section>
+
+<script>
+// --- SUPABASE БАЗАСЫМЕН БАЙЛАНЫСУ ---
+const SUPABASE_URL = "https://yvtqvydtpaqnpxzotala.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_FLbTG6QwCwjQ-tSvUHQjsA_5c7UoYqW";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DEFAULT_AVATAR="https://cdn-icons-png.flaticon.com/512/149/149071.png";
+let currentUser=null,activeChatFriend=null;
+let labAnim={},labStates={};
+
+// Деректерді серверден (Supabase) алу және сақтау функциялары
+async function loadUsersFromCloud() {
+  const { data, error } = await supabaseClient.from('users').select('*');
+  if (error) { console.error(error); return {}; }
+  let map = {};
+  data.forEach(u => { map[u.username] = u; });
+  return map;
+}
+
+async function saveUserToCloud(userObj) {
+  await supabaseClient.from('users').upsert(userObj);
+}
+
+async function getMessagesFromCloud(roomKey) {
+  const { data, error } = await supabaseClient.from('messages').select('*').eq('room_key', roomKey).order('created_at', { ascending: true });
+  if (error) return [];
+  return data;
+}
+
+async function saveMessageToCloud(roomKey, sender, text, fx) {
+  await supabaseClient.from('messages').insert([{ room_key: roomKey, sender, text, fx }]);
+}
+
+// Бір ғана қолданушыны алу (барлық қолданушыларды жүктеуден әлдеқайда жылдам)
+async function getUserFromCloud(username) {
+  const { data, error } = await supabaseClient.from('users').select('*').eq('username', username).maybeSingle();
+  if (error) { console.error(error); return { user: null, error }; }
+  return { user: data, error: null };
+}
+
+// --- ЧАТ: бетті жаңартпай жаңа хабарламаларды автоматты көрсету (Supabase Realtime) ---
+let msgChannel = null, realtimeOk = false, pollTimer = null;
+
+function startRealtime() {
+  stopRealtime();
+  msgChannel = supabaseClient
+    .channel('physx-messages')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+      if (!currentUser || !activeChatFriend) return;
+      const k = chatKey(currentUser.username, activeChatFriend.username);
+      if (payload.new && payload.new.room_key === k) renderChatMessages();
+    })
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, () => {
+      if (currentUser && activeChatFriend) renderChatMessages();
+    })
+    .subscribe(status => { realtimeOk = (status === 'SUBSCRIBED'); });
+
+  // Қосалқы жол: Realtime қосылмай тұрса, чат ашық кезде 4 секунд сайын жаңартып тұрады
+  pollTimer = setInterval(() => {
+    if (currentUser && activeChatFriend && !realtimeOk) renderChatMessages();
+  }, 4000);
+}
+
+function stopRealtime() {
+  if (msgChannel) { supabaseClient.removeChannel(msgChannel); msgChannel = null; }
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+  realtimeOk = false;
+}
+
+function clearAuthInputs(){['form-login','form-register','form-forgot'].forEach(f=>$(f).reset());$('search-friend-input').value='';$('search-result').innerHTML=''}
+
+/* AUTH */
+function showAuthPage(p){clearAuthInputs();document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));$('page-'+p).classList.add('active')}
+
+async function handleRegister(e){
+  e.preventDefault();
+  const fn=$('reg-fullname').value.trim(), un=$('reg-username').value.trim().toLowerCase(), pw=$('reg-password').value;
+  const chk = await getUserFromCloud(un);
+  if(chk.error){alert('Серверге қосыла алмадық. Интернетті тексеріп, қайта көріңіз.');return}
+  if(chk.user){alert('Бұл логин бос емес!');return}
+  
+  const newUser = {fullname:fn, username:un, password:pw, avatar:DEFAULT_AVATAR, friends:[], requests:[]};
+  const { error: regErr } = await supabaseClient.from('users').upsert(newUser);
+  if(regErr){console.error(regErr);alert('Тіркелу сәтсіз аяқталды. Қайта көріңіз.');return}
+  alert('Тіркелу сәтті аяқталды!');
+  showAuthPage('login');
+}
+
+async function handleLogin(e){
+  e.preventDefault();
+  const un=$('login-username').value.trim().toLowerCase(), pw=$('login-password').value;
+  const res = await getUserFromCloud(un);
+  if(res.error){alert('Серверге қосыла алмадық. Интернетті тексеріп, қайта көріңіз.');return}
+  if(res.user&&res.user.password===pw){
+    currentUser=res.user;
+    localStorage.setItem('physx_current_user', currentUser.username);
+    clearAuthInputs();
+    initUserSession();
+  } else {
+    alert('Логин немесе пароль қате!');
+  }
+}
+
+async function handleForgotPassword(e){
+  e.preventDefault();
+  const un=$('forgot-username').value.trim().toLowerCase(), newPw=$('forgot-new-password').value;
+  const res = await getUserFromCloud(un);
+  if(res.error){alert('Серверге қосыла алмадық. Интернетті тексеріп, қайта көріңіз.');return}
+  if(res.user){
+    res.user.password = newPw;
+    await saveUserToCloud(res.user);
+    alert('Пароль жаңартылды!');
+    showAuthPage('login');
+  } else {
+    alert('Мұндай логин табылмады!');
+  }
+}
+
+function logout(){
+  stopRealtime();
+  currentUser=null;
+  activeChatFriend=null;
+  localStorage.removeItem('physx_current_user');
+  clearAuthInputs();
+  $('main-header').style.display='none';
+  showAuthPage('login');
+}
+
+async function initUserSession(){
+  $('main-header').style.display='flex';
+  const av=currentUser.avatar||DEFAULT_AVATAR;
+  $('header-fullname').innerText=currentUser.fullname;$('header-username').innerText='@'+currentUser.username;$('header-avatar').src=av;
+  $('dash-fullname').innerText=currentUser.fullname;$('dash-username').innerText='@'+currentUser.username;$('dash-avatar').src=av;
+  $('chat-target-avatar').src=DEFAULT_AVATAR;
+  renderFriends();renderRequests();initPicker();renderChatMessages();showPage('dashboard');startRealtime()}
+
+async function uploadAvatar(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async ev=>{
+    currentUser.avatar=ev.target.result;
+    await saveUserToCloud(currentUser);
+    initUserSession();
+  };
+  r.readAsDataURL(f);
+}
+
+function showPage(id){
+ document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
+ document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active-nav'));
+ $('page-'+id).classList.add('active');const nb=$('nav-'+id);if(nb)nb.classList.add('active-nav');
+ $('search-friend-input').value='';$('search-result').innerHTML='';
+ Object.values(labAnim).forEach(cancelAnimationFrame);
+ if(id==='formulas')renderFormulas();if(id==='scientists')filterScientists();if(id==='solver')renderSolvers();if(id==='labs')renderLabs();window.scrollTo(0,0)}
+
+/* FRIENDS */
+const userRow=(u,right)=>`<div class="user-item"><div class="user-item-info"><img src="${esc(u.avatar||DEFAULT_AVATAR)}"><div><div style="font-size:12px;font-weight:bold">${esc(u.fullname)}</div><div class="muted" style="font-size:10px">@${esc(u.username)}</div></div></div>${right}</div>`;
+
+async function searchFriend(){
+ const q=$('search-friend-input').value.trim().toLowerCase(),c=$('search-result');
+ if(!q){c.innerHTML='<p class="muted">Іздеу үшін сөз енгізіңіз</p>';return}
+ let users = await loadUsersFromCloud();
+ const m=Object.values(users).filter(u=>u.username!==currentUser.username&&(u.username.includes(q)||u.fullname.toLowerCase().includes(q)));
+ c.innerHTML=m.length?m.map(t=>userRow(t,(currentUser.friends||[]).includes(t.username)?'<span style="font-size:11px;color:var(--success-color)">Доссыз</span>':(t.requests||[]).includes(currentUser.username)?'<span class="muted">Жіберілді</span>':`<button onclick="sendFriendRequest('${esc(t.username)}')" style="font-size:11px;padding:4px 8px">Қосу</button>`)).join(''):'<p style="font-size:12px;color:var(--danger-color)">Пайдаланушы табылмады</p>'}
+
+async function sendFriendRequest(t){
+  let users = await loadUsersFromCloud();
+  let target = users[t];
+  target.requests = target.requests || [];
+  if(!target.requests.includes(currentUser.username)){
+    target.requests.push(currentUser.username);
+    await saveUserToCloud(target);
+    alert('Достық шақыруы жіберілді!');
+    searchFriend();
+  }
+}
+
+async function renderRequests(){
+  const c=$('friend-requests-list');
+  let users = await loadUsersFromCloud();
+  currentUser = users[currentUser.username];
+  const r=(currentUser.requests||[]).filter(u=>users[u]);
+  c.innerHTML=r.length?r.map(u=>userRow(users[u],`<button onclick="acceptRequest('${esc(u)}')" style="font-size:10px;padding:4px 6px"><i class="fa-solid fa-check"></i> Қабылдау</button>`)).join(''):'<p class="muted">Өтініштер жоқ ст</p>'}
+
+async function acceptRequest(u){
+  let users = await loadUsersFromCloud();
+  currentUser = users[currentUser.username];
+  let target = users[u];
+  
+  currentUser.friends = currentUser.friends || [];
+  target.friends = target.friends || [];
+  
+  if(!currentUser.friends.includes(u)) currentUser.friends.push(u);
+  if(!target.friends.includes(currentUser.username)) target.friends.push(currentUser.username);
+  
+  currentUser.requests = (currentUser.requests||[]).filter(x=>x!==u);
+  
+  await saveUserToCloud(currentUser);
+  await saveUserToCloud(target);
+  renderFriends();
+  renderRequests();
+}
+
+async function renderFriends(){
+  const c=$('friends-list');
+  let users = await loadUsersFromCloud();
+  currentUser = users[currentUser.username];
+  const f=(currentUser.friends||[]).filter(u=>users[u]);
+  c.innerHTML=f.length?f.map(u=>`<div onclick="openChat('${esc(u)}')" style="cursor:pointer">${userRow(users[u],'<i class="fa-solid fa-chevron-right" style="font-size:12px;color:var(--accent-color)"></i>')}</div>`).join(''):'<p class="muted">Достарыңыз жоқ</p>'}
+
+/* CHAT */
+const PROBLEMS=["Массасы 2 кг денеге 10 Н күш әсер етеді. Үдеуін табыңыз.","Массасы 5 кг денеге 20 Н күш әсер етеді. Үдеуін табыңыз.","Дене 4 м/с жылдамдықпен 5 с қозғалады. Жүрген жолын табыңыз.","Дене тыныштық күйінен 2 м/с² үдеумен 6 с қозғалады. Соңғы жылдамдығын табыңыз.","Дене 10 м/с жылдамдықпен 8 с қозғалады. Жүрген жолын табыңыз.","Массасы 3 кг дененің ауырлық күшін табыңыз (g=10 м/с²).","Массасы 4 кг денеге 12 Н тең әсерлі күш түседі. Үдеуін табыңыз.","Көлемі 2 м³ дененің массасы 1600 кг. Тығыздығын табыңыз.","Массасы 600 г, көлемі 200 см³ дененің тығыздығын кг/м³-пен табыңыз.","Күш 50 Н, орын ауыстыру 4 м. Күш пен орын ауыстыру бағыттас болса, жұмысты табыңыз.","Массасы 2 кг дене 10 м/с жылдамдықпен қозғалады. Кинетикалық энергиясын табыңыз.","Массасы 5 кг дене 4 м биіктікте тұр. Потенциалдық энергиясын табыңыз (g=10 м/с²).","Қуаты 200 Вт құрылғы 30 с жұмыс істейді. Атқарған жұмысын табыңыз.","Дене 120 м жолды 20 с-та жүріп өтті. Орташа жылдамдығын табыңыз.","Автомобиль жылдамдығын 5 м/с-тен 25 м/с-ке дейін 4 с-та арттырды. Үдеуін табыңыз.","Кернеуі 12 В, кедергісі 6 Ом тізбектегі ток күшін табыңыз.","Кедергісі 8 Ом өткізгіштен 3 А ток өтеді. Кернеуді табыңыз.","Кернеуі 24 В, ток күші 2 А құрылғының қуатын табыңыз.","Кедергісі 10 Ом өткізгіштен 2 А ток өтеді. 5 с-та бөлінетін жылуды табыңыз.","Тізбектегі кернеу 18 В, ток күші 3 А. Кедергіні табыңыз.","Жиілігі 5 Гц, жылдамдығы 340 м/с дыбыстың толқын ұзындығын табыңыз.","Периоды 0,2 с тербелістің жиілігін табыңыз.","Ұзындығы 1 м математикалық маятниктің периодын табыңыз (g=9,8 м/с²).","Тығыздығы 1000 кг/м³ сұйыққа батырылған көлемі 0,002 м³ денеге әсер ететін Архимед күшін табыңыз (g=10 м/с²).","Ауданы 0,02 м² бетке 200 Н күш перпендикуляр әсер етеді. Қысымды табыңыз.","Суға 3 м тереңдікке батырылған нүктедегі сұйық қысымын табыңыз (ρ=1000 кг/м³, g=10 м/с²).","Массасы 10 кг дене 5 м биіктіктен құлайды. Ауа кедергісін елемей, құлау уақытын табыңыз (g=10 м/с²).","Дене 20 м/с бастапқы жылдамдықпен тік жоғары лақтырылды. Ең жоғары көтерілу биіктігін табыңыз (g=10 м/с²).","Массасы 2 кг дене 6 м/с жылдамдықпен қозғалады. Импульсін табыңыз.","Массасы 0,5 кг доп 12 м/с жылдамдықпен қабырғаға соғылып, кері бағытта 8 м/с жылдамдықпен қайтты. Импульс өзгерісінің модулін табыңыз.","Массасы 4 кг дене 3 м/с жылдамдықпен қозғалады. Кинетикалық энергиясын табыңыз.","Массасы 1000 кг автомобиль 20 м/с жылдамдықпен қозғалады. Кинетикалық энергиясын табыңыз.","Қозғалтқыш 15 кДж жұмысын 5 с-та атқарады. Қуатын табыңыз.","ПӘК-і 80% құрылғыға 500 Дж энергия берілді. Пайдалы энергиясын табыңыз.","Денеге 40 Н күш әсер етіп, оны күш бағытымен 10 м жылжытады. Жұмысты табыңыз.","Серіппенің қатаңдығы 200 Н/м, созылуы 0,05 м. Серпімділік күшін табыңыз.","Қатаңдығы 400 Н/м серіппе 0,1 м-ге созылды. Серіппенің потенциалдық энергиясын табыңыз.","Массасы 2 кг дене радиусы 4 м шеңбер бойымен 8 м/с жылдамдықпен қозғалады. Центрге тартқыш күшті табыңыз.","Автомобиль радиусы 50 м бұрылыстан 10 м/с жылдамдықпен өтеді. Центрге тартқыш үдеуін табыңыз.","Массалары 2 кг және 3 кг денелердің жылдамдықтары бір бағытта тиісінше 4 м/с және 2 м/с. Жүйенің толық импульсін табыңыз.","Массасы 2 кг дене 6 м/с жылдамдықпен тыныштықтағы массасы 4 кг денемен соқтығысып, бірге қозғалады. Ортақ жылдамдықты табыңыз.","Температурасы 20°C судың массасы 2 кг. Оны 50°C-қа дейін қыздыру үшін қанша жылу қажет? (c=4200 Дж/(кг·°C)).","Массасы 0,5 кг алюминийді 20°C-тан 100°C-қа дейін қыздыруға қажетті жылуды табыңыз (c=900 Дж/(кг·°C)).","Массасы 2 кг мұзды 0°C-та толық ерітуге қажетті жылуды табыңыз (λ=334 кДж/кг).","Массасы 0,2 кг су 100°C-та толық буланады. Қажетті жылуды табыңыз (r=2,3 МДж/кг).","Газ 300 Дж жылу алды және 120 Дж жұмыс атқарды. Ішкі энергиясының өзгерісін табыңыз.","Идеал газдың температурасы 300 К, зат мөлшері 2 моль. Көлемі 0,05 м³ болса, қысымын табыңыз (R=8,31 Дж/(моль·К)).","Газдың қысымы 100 кПа, көлемі 0,02 м³. Температура тұрақты кезде көлемі 0,01 м³ болса, соңғы қысымын табыңыз.","Температурасы 27°C газды тұрақты қысымда 127°C-қа дейін қыздырды. Соңғы көлемінің бастапқы көлемге қатынасын табыңыз.","Массасы 0,4 кг дененің температурасы 10°C-қа артты. Меншікті жылусыйымдылығы 500 Дж/(кг·°C). Ішкі энергия өзгерісін табыңыз.","Кедергілері 4 Ом және 6 Ом резисторлар тізбектей жалғанған. Жалпы кедергіні табыңыз.","Кедергілері 6 Ом және 3 Ом резисторлар параллель жалғанған. Жалпы кедергіні табыңыз.","12 В кернеу көзіне 4 Ом резистор жалғанған. Ток күші мен қуатты табыңыз.","ЭҚК-і 12 В, ішкі кедергісі 1 Ом ток көзін 5 Ом сыртқы кедергіге жалғады. Ток күшін табыңыз.","Ток күші 2 А болғанда өткізгіштің көлденең қимасынан 3 минутта өтетін зарядты табыңыз.","Электронның зарядының модулі 1,6·10⁻¹⁹ Кл. 2 Кл зарядқа сәйкес келетін электрондар санын табыңыз.","Конденсатордың сыйымдылығы 20 мкФ, кернеуі 100 В. Зарядын табыңыз.","Сыйымдылығы 10 мкФ конденсатор 200 В кернеуде тұр. Электр өрісінің энергиясын табыңыз.","Нүктелік зарядтан 0,3 м қашықтықтағы электр өрісінің кернеулігін табыңыз (q=2 мкКл, k=9·10⁹ Н·м²/Кл²).","Екі нүктелік заряд 2 мкКл және 3 мкКл, арақашықтығы 0,2 м. Өзара әсер күшін табыңыз.","Магнит өрісінде 0,5 м өткізгіштен 4 А ток өтеді. Өткізгіш өріске перпендикуляр, B=0,2 Тл. Ампер күшін табыңыз.","Магнит өрісіне перпендикуляр 2·10⁶ м/с жылдамдықпен кірген протонға әсер етітетін Лоренц күшін табыңыз (B=0,5 Тл, q=1,6·10⁻¹⁹ Кл).","Индуктивтілігі 0,2 Гн катушкадан 3 А ток өтеді. Магнит өрісінің энергиясын табыңыз.","Магнит ағыны 0,04 Вб-ден 0,01 Вб-ге 0,1 с ішінде өзгерді. Бір орамды контурдағы индукция ЭҚК-інің модулін табыңыз.","Жиілігі 50 Гц айнымалы токтың периодын табыңыз.","Трансформатордың бірінші орамында 1000 орам, екіншісінде 200 орам бар. Бірінші кернеу 220 В болса, екінші кернеуді табыңыз.","Жарықтың вакуумдағы жылдамдығы 3·10⁸ м/с, жиілігі 6·10¹⁴ Гц. Толқын ұзындығын табыңыз.","Сыну көрсеткіші 1,5 ортадағы жарық жылдамдығын табыңыз.","Жарық ауадан шыныға 30° түсу бұрышымен түседі. Шынының сыну көрсеткіші 1,5. Сыну бұрышын табыңыз.","Жинағыш линзаның фокус аралығы 20 см. Оптикалық күшін диоптриямен табыңыз.","Нәрсе жинағыш линзадан 30 см қашықтықта, фокус аралығы 15 см. Кескіннің орнын табыңыз.","Фокус аралығы 10 см жинағыш линзаның алдына нәрсе 15 см қашықтықта қойылған. Үлкейту модулін табыңыз.","Жарық толқынының ұзындығы 500 нм. Фотон энергиясын табыңыз (h=6,63·10⁻³⁴ Дж·с, c=3·10⁸ м/с).","Фотоэффект кезінде фотон энергиясы 5 эВ, шығу жұмысы 2 эВ. Фотоэлектронның максимал кинетикалық энергиясын табыңыз.","Радиоактивті заттың жартылай ыдырау периоды 8 тәулік. 24 тәуліктен кейін бастапқы ядролар санының қандай үлесі қалады?","Толқын 12 м/с жылдамдықпен таралады, жиілігі 4 Гц. Толқын ұзындығын табыңыз.","Толқын ұзындығы 0,8 м, периоды 0,2 с. Толқынның таралу жылдамдығын табыңыз.","Тербелмелі контурдың индуктивтілігі 0,2 Гн, сыйымдылығы 50 мкФ. Тербеліс периодын табыңыз.","Серіппеге ілінген массасы 0,5 кг дененің тербеліс периоды 2 с. Серіппенің қатаңдығын табыңыз.","Математикалық маятниктің ұзындығы 0,64 м. g=10 м/с² болғанда тербеліс периодын табыңыз.","Дене гармониялық тербеліс жасайды: амплитудасы 0,1 м, жиілігі 5 Гц. Максимал жылдамдығын табыңыз.","Массасы 0,2 кг дене серіппеде 4 Гц жиілікпен тербеледі. Серіппенің қатаңдығын табыңыз.","Дене 15 м/с бастапқы жылдамдықпен жоғары лақтырылды. 1 с өткендегі биіктігін табыңыз (g=10 м/с²).","Дене тыныштықтан 3 м/с² үдеумен 8 с қозғалды. Жүрген жолын табыңыз.","Автомобиль 72 км/сағ жылдамдықпен қозғалып, 5 с ішінде бірқалыпты тежеліп тоқтады. Тежеу үдеуінің модулін және тоқтау жолын табыңыз.","Массасы 1200 кг автомобильге қозғалтқыштың 3000 Н тарту күші, ал кедергі күші 600 Н әсер етеді. Үдеуін табыңыз.","Массасы 5 кг дене горизонталь бетте 20 Н күшпен тартылады. Үйкеліс коэффициенті 0,2, g=10 м/с². Үдеуін табыңыз.","Массасы 3 кг дене 4 м биіктіктен сырғанап түседі. Үйкеліс жоқ болса, төменгі нүктедегі жылдамдығын табыңыз (g=10 м/с²).","Массалары 2 кг және 3 кг денелер идеал қозғалмалы блок арқылы байланысқан Атвуд машинасын құрайды. Үдеуін және жіптің керілу күшін табыңыз (g=10 м/с²).","Массасы 60 кг адам лифтіде жоғары қарай 2 м/с² үдеумен қозғалады. Еденнің тірек реакциясын табыңыз (g=10 м/с²).","Массасы 1000 кг автомобиль дөңес көпірдің жоғарғы нүктесінен 10 м/с жылдамдықпен өтеді. Көпір радиусы 50 м. Тірек реакциясын табыңыз (g=10 м/с²).","Массасы 2 кг денеге 10 Н күш 3 с бойы әсер етеді. Бастапқы жылдамдығы 4 м/с болса, соңғы жылдамдығы мен импульс өзгерісін табыңыз.","Массасы 1 кг дене 10 м/с жылдамдықпен қозғалып, тыныштықтағы массасы 4 кг денемен серпімсіз соқтығысады. Ортақ жылдамдық пен энергия шығынын табыңыз.","Массасы 2 кг дене 10 м биіктіктен тыныштықтан құлайды. Жерден 4 м биіктіктегі кинетикалық энергиясын және жылдамдығын табыңыз (g=10 м/с²).","ПӘК-і 75% сорғы суды 12 м биіктікке 2 минутта 600 кг көтереді. Сорғының тұтынатын орташа қуатын табыңыз (g=10 м/с²).","Көлденең қимасы 4 см² құбырдан су 2 м/с жылдамдықпен ағады. Қимасы 1 см² тар бөлігіндегі жылдамдықты табыңыз.","Горизонталь құбырдың кең бөлігінде судың жылдамдығы 2 м/с, қысымы 150 кПа. Тар бөлігінде жылдамдық 6 м/с болса, қысымды табыңыз (ρ=1000 кг/м³).","Жер бетінде еркін түсу үдеуі 9,8 м/с². Жер радиусы R, массасы M. Гравитациялық тұрақтыны G=6,67·10⁻¹¹ Н·м²/кг² деп алып, Жер массасын табыңыз (R=6,4·10⁶ м).","Жер серігі Жер бетінен 400 км биіктікте шеңберлік орбита бойымен қозғалады. Жер радиусы 6400 км, g=9,8 м/с². Серіктің орбиталық жылдамдығын табыңыз.","Екі резистор 4 Ом және 12 Ом параллель жалғанып, оларға 24 В кернеу берілді. Әр тармақтағы токты, толық токты және жалпы қуатты табыңыз.","Массасы 0,5 кг дене 8 м/с жылдамдықпен қозғалып, қатаңдығы 200 Н/м серіппені сығады. Үйкеліс болмаса, серіппенің максимал сығылуын табыңыз.","Массасы 3 кг денеге 12 Н күш әсер етеді. Үдеуін тап.","Массасы 5 кг денеге 20 Н күш әсер етеді. Үдеуін тап.","Массасы 8 кг денеге 40 Н күш әсер етеді. Үдеуін тап.","Массасы 10 кг денеге 30 Н күш әсер етеді. Үдеуін тап.","Массасы 4 кг денеге 28 Н күш әсер етеді. Үдеуін тап.","Массасы 6 кг денеге 18 Н күш әсер етеді. Үдеуін тап.","Массасы 12 кг денеге 60 Н күш әсер етеді. Үдеуін тап.","Массасы 15 кг денеге 45 Н күш әсер етеді. Үдеуін тап.","Массасы 2 кг денеге 16 Н күш әсер етеді. Үдеуін тап.","Массасы 9 кг денеге 27 Н күш әсер етеді. Үдеуін тап.","Дене 5 секундта 20 м жол жүрді. Орташа жылдамдығын тап.","Дене 8 секундта 64 м жол жүрді. Орташа жылдамдығын тап.","Дене 12 секундта 96 м жол жүрді. Орташа жылдамдығын тап.","Дене 15 секундта 150 м жол жүрді. Орташа жылдамдығын тап.","Дене 4 секундта 36 м жол жүрді. Орташа жылдамдығын тап.","Дене 10 секундта 75 м жол жүрді. Орташа жылдамдығын тап.","Дене 6 секундта 54 м жол жүрді. Орташа жылдамдығын тап.","Дене 9 секундта 81 м жол жүрді. Орташа жылдамдығын тап.","Дене 20 секундта 180 м жол жүрді. Орташа жылдамдығын тап.","Дене 7 секундта 42 м жол жүрді. Орташа жылдамдығын тап.","Массасы 2 кг дененің жылдамдығы 6 м/с. Кинетикалық энергиясын тап.","Массасы 4 кг дененің жылдамдығы 5 м/с. Кинетикалық энергиясын тап.","Массасы 3 кг дененің жылдамдығы 8 м/с. Кинетикалық энергиясын тап.","Массасы 6 кг дененің жылдамдығы 4 м/с. Кинетикалық энергиясын тап.","Массасы 5 кг дененің жылдамдығы 10 м/с. Кинетикалық энергиясын тап.","Массасы 8 кг дененің жылдамдығы 3 м/с. Кинетикалық энергиясын тап.","Массасы 10 кг дененің жылдамдығы 6 м/с. Кинетикалық энергиясын тап.","Массасы 12 кг дененің жылдамдығы 2 м/с. Кинетикалық энергиясын тап.","Массасы 7 кг дененің жылдамдығы 4 м/с. Кинетикалық энергиясын тап.","Массасы 9 кг дененің жылдамдығы 8 м/с. Кинетикалық энергиясын тап.","Денеге 50 Н күш әсер етіп, оны 4 м жылжытты. Атқарылған жұмысты тап.","Денеге 80 Н күш әсер етіп, оны 3 м жылжытты. Атқарылған жұмысты тап.","Денеге 25 Н күш әсер етіп, оны 12 м жылжытты. Атқарылған жұмысты тап.","Денеге 100 Н күш әсер етіп, оны 5 м жылжытты. Атқарылған жұмысты тап.","Денеге 60 Н күш әсер етіп, оны 7 м жылжытты. Атқарылған жұмысты тап.","Денеге 40 Н күш әсер етіп, оны 9 м жылжытты. Атқарылған жұмысты тап.","Денеге 120 Н күш әсер етіп, оны 2 м жылжытты. Атқарылған жұмысты тап.","Денеге 35 Н күш әсер етіп, оны 8 м жылжытты. Атқарылған жұмысты тап.","Денеге 90 Н күш әсер етіп, оны 6 м жылжытты. Атқарылған жұмысты тап.","Денеге 150 Н күш әсер етіп, оны 4 м жылжытты. Атқарылған жұмысты тап.","Массасы 4 кг дене 5 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 6 кг дене 8 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 10 кг дене 3 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 2 кг дене 12 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 8 кг дене 7 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 5 кг дене 9 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 12 кг дене 4 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 3 кг дене 15 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 7 кг дене 6 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Массасы 9 кг дене 2 м биіктікке көтерілді. Потенциалдық энергиясын тап (g=10 м/с²).","Кернеуі 12 В, кедергісі 4 Ом өткізгіштегі ток күшін тап.","Кернеуі 24 В, кедергісі 6 Ом өткізгіштегі ток күшін тап.","Кернеуі 18 В, кедергісі 3 Ом өткізгіштегі ток күшін тап.","Кернеуі 36 В, кедергісі 9 Ом өткізгіштегі ток күшін тап.","Кернеуі 10 В, кедергісі 2 Ом өткізгіштегі ток күшін тап.","Кернеуі 48 В, кедергісі 8 Ом өткізгіштегі ток күшін тап.","Кернеуі 15 В, кедергісі 5 Ом өткізгіштегі ток күшін тап.","Кернеуі 20 В, кедергісі 10 Ом өткізгіштегі ток күшін тап.","Кернеуі 30 В, кедергісі 6 Ом өткізгіштегі ток күшін тап.","Кернеуі 42 В, кедергісі 7 Ом өткізгіштегі ток күшін тап.","Ток күші 2 А, кернеуі 12 В. Электр қуатын тап.","Ток күші 3 А, кернеуі 24 В. Электр қуатын тап.","Ток күші 4 А, кернеуі 15 В. Электр қуатын тап.","Ток күші 5 А, кернеуі 20 В. Электр қуатын тап.","Ток күші 6 А, кернеуі 18 В. Электр қуатын тап.","Ток күші 1,5 А, кернеуі 40 В. Электр қуатын тап.","Ток күші 2,5 А, кернеуі 16 В. Электр қуатын тап.","Ток күші 0,5 А, кернеуі 220 В. Электр қуатын тап.","Ток күші 8 А, кернеуі 12 В. Электр қуатын тап.","Ток күші 10 А, кернеуі 24 В. Электр қуатын тап.","Массасы 200 г дененің көлемі 50 см³. Тығыздығын тап.","Массасы 500 г дененің көлемі 100 см³. Тығыздығын тап.","Массасы 900 г дененің көлемі 300 см³. Тығыздығын тап.","Массасы 2 кг дененің көлемі 0,001 м³. Тығыздығын тап.","Массасы 750 г дененің көлемі 250 см³. Тығыздығын тап.","Массасы 1,2 кг дененің көлемі 400 см³. Тығыздығын тап.","Массасы 3 кг дененің көлемі 0,002 м³. Тығыздығын тап.","Массасы 640 г дененің көлемі 80 см³. Тығыздығын тап.","Массасы 4,5 кг дененің көлемі 0,005 м³. Тығыздығын тап.","Массасы 350 г дененің көлемі 70 см³. Тығыздығын тап.","Қысымы 2000 Па, ауданы 4 м². Қысым күшін тап.","Қысымы 5000 Па, ауданы 2 м². Қысым күшін тап.","Қысымы 1200 Па, ауданы 5 м². Қысым күшін тап.","Қысымы 800 Па, ауданы 3 м². Қысым күшін тап.","Қысымы 10000 Па, ауданы 0,5 м². Қысым күшін тап.","Қысымы 2500 Па, ауданы 6 м². Қысым күшін тап.","Қысымы 4000 Па, ауданы 1,5 м². Қысым күшін тап.","Қысымы 600 Па, ауданы 10 м². Қысым күшін тап.","Қысымы 7500 Па, ауданы 2 м². Қысым күшін тап.","Қысымы 3000 Па, ауданы 8 м². Қысым күшін тап.","Дене 100 м жолды 20 секундта жүрді. Жылдамдығын тап.","Дене 240 м жолды 30 секундта жүрді. Жылдамдығын тап.","Дене 360 м жолды 45 секундта жүрді. Жылдамдығын тап.","Дене 500 м жолды 50 секундта жүрді. Жылдамдығын тап.","Дене 720 м жолды 60 секундта жүрді. Жылдамдығын тап.","Дене 150 м жолды 25 секундта жүрді. Жылдамдығын тап.","Дене 420 м жолды 35 секундта жүрді. Жылдамдығын тап.","Дене 800 м жолды 40 секундта жүрді. Жылдамдығын тап.","Дене 900 м жолды 75 секундта жүрді. Жылдамдығын тап.","Дене 1000 м жолды 80 секундта жүрді. Жылдамдығын тап."];
+const FACTS=["Жарық вакуумда секундына шамамен 300 000 км жылдамдықпен таралады.","Дыбыс вакуумда таралмайды, себебі оған материалдық орта қажет.","Жарық Күннен Жерге шамамен 8 минут 20 секундта жетеді.","Найзағайдың температурасы Күн бетінің температурасынан да жоғары болуы мүмкін.","Ғарышта ауа болмағандықтан, дыбыс кәдімгі жолмен таралмайды.","Жердің тартылыс үдеуі шамамен 9,8 м/с²-қа тең.","Айдағы еркін түсу үдеуі Жердегіден шамамен 6 есе аз.","Ғарышкерлер орбитада салмақсыздық күйін сезінеді.","Ауырлық күші болмаса да, дененің массасы сақталады.","Жарық та энергия тасымалдайды.","Фотонның тыныштық массасы нөлге тең.","Жарықтың түсі оның толқын ұзындығына байланысты.","Қызыл жарықтың толқын ұзындығы күлгін жарықтан үлкен.","Радиотолқындар да электромагниттік толқындарға жатады.","Микротолқындар микротолқынды пеште тағамды қыздыруға көмектеседі.","Рентген сәулелері медицинада сүйектерді зерттеуге қолданылады.","Гамма-сәулелер электромагниттік спектрдің жоғары энергиялы бөлігін құрайды.","Ультракүлгін сәулелер теріде D дәруменінің түзілуіне қатысады.","Инфрақызыл сәулелерді жылулық камералар тіркей алады.","Ақ жарық көптеген түрлі түсті жарықтардың қосындысы болып саналады.","Кемпірқосақ күн сәулесінің су тамшыларында сынуы мен шағылуынан пайда болады.","Аспанның көгілдір көрінуіне атмосферадағы жарықтың шашырауы себеп болады.","Күннің батуы кезінде аспанның қызғылт түске боялуы жарықтың шашырауымен байланысты.","Ай өз жарығын шығармайды, Күн сәулесін шағылдырады.","Айдағы аспан күндіз де қара болып көрінеді.","Жұлдыздардың жыпылықтауы көбіне Жер атмосферасындағы өзгерістерден болады.","Вакуумда жарықтың жылдамдығы тұрақты.","Су ішіндегі жарықтың жылдамдығы вакуумдағыдан төмен.","Алмаздың жарқырауы жарықтың сынуы мен толық ішкі шағылуына байланысты.","Оптикалық талшықтар жарықты толық ішкі шағылу арқылы жеткізеді.","Линза жарық сәулелерінің бағытын өзгерте алады.","Дөңес линза жинағыш линза деп аталады.","Ойыс линза параллель сәулелерді шашыратады.","Адам көзінің торлы қабығында кескін төңкеріліп пайда болады.","Камера объективі жарықты жинап, кескін қалыптастырады.","Микроскоп өте ұсақ нысандарды үлкейтіп көрсетеді.","Телескоп алыстағы аспан денелерінен келген жарықты жинайды.","Поляризацияланған жарықтың тербелісі белгілі бір бағытпен шектеледі.","Күн көзілдірігінің кейбір түрлері поляризацияланған сүзгілер қолданады.","Жарықтың интерференциясы түрлі түсті жұқа қабықшаларда байқалуы мүмкін.","Ньютонның бірінші заңы инерция құбылысын сипаттайды.","Дене тыныштық күйін немесе бірқалыпты түзу сызықты қозғалысын сақтауға тырысады.","Масса дененің инерттілігін сипаттайды.","Ньютонның екінші заңы күш, масса және үдеуді байланыстырады.","Бірдей күш әсер еткенде массасы аз дененің үдеуі үлкен болады.","Ньютонның үшінші заңы бойынша әсер мен қарсы әсер күштері тең.","Әсер мен қарсы әсер күштері әртүрлі денелерге түседі.","Үйкеліс күші қозғалысқа кедергі келтіруі мүмкін.","Үйкеліс болмаса, адамның жүруі өте қиын болар еді.","Автокөліктің тежелуіне дөңгелек пен жол арасындағы үйкеліс көмектеседі.","Домалау үйкелісі көбіне сырғанау үйкелісінен аз болады.","Майлау үйкелісті азайтуға көмектеседі.","Инерция пойыз кенет тоқтағанда жолаушылардың алға ұмтылуына себеп болады.","Қауіпсіздік белдігі инерция әсерінен болатын жарақат қаупін азайтады.","Ауа кедергісі дененің қозғалысына қарсы бағытталуы мүмкін.","Парашют ауа кедергісін арттырып, құлау жылдамдығын азайтады.","Еркін түсу кезінде ауа кедергісін елемесек, денелер бірдей үдеумен құлайды.","Балға соққысы кезінде импульс өзгерісі маңызды рөл атқарады.","Импульс дене массасы мен жылдамдығының көбейтіндісіне тең.","Жабық жүйеде толық импульс сақталады.","Зымыран реактивті қозғалыс принципімен ұшады.","Зымыран ғарышта ұшу үшін ауаға сүйенбейді.","Қайықтан секіргенде қайық кері бағытта қозғала алады.","Конькиші қолын жинағанда айналу жылдамдығын арттыра алады.","Бұрыштық импульс сыртқы күш моменті болмаған жағдайда сақталады.","Мұз үстіндегі сырғанау үйкелістің аздығын көрсетеді.","Жердің айналуы күн мен түннің ауысуына себеп болады.","Жер Күнді шамамен 365,25 тәулікте бір айналады.","Жыл мезгілдерінің ауысуы Жер осінің көлбеулігімен байланысты.","Жер экваторында айналудың сызықтық жылдамдығы шамамен 465 м/с.","Жердің айналуынан пайда болатын Кориолис әсері ауа ағындарына ықпал етеді.","Жер серіктері орбитада еркін түсу күйінде қозғалады.","Орбитадағы ғарышкер Жердің тартылыс күшін әлі де сезінеді.","Ай Жер мұхиттарындағы толысу мен қайтуға әсер етеді.","Жасанды серіктер навигация мен байланысқа көмектеседі.","Геостационарлық серік Жердің бір аймағының үстінде тұрғандай көрінеді.","Жердің тартылыс күші Айды орбитада ұстап тұрады.","Күн жүйесіндегі ең үлкен ғаламшар — Юпитер.","Сатурнның сақиналары негізінен мұз бен тасты бөлшектерден тұрады.","Марстағы ауырлық үдеуі Жердегіден аз.",
+"Венераның беткі температурасы Күн жүйесіндегі көптеген ғаламшарлардан жоғары.","Меркурийде атмосфера өте сирек.","Нейтрон жұлдыздарының тығыздығы аса жоғары.","Қара құрдымның тартылыс өрісі өте күшті.","Қара құрдымнан жарық та сыртқа шыға алмайтын шекара оқиға көкжиегі деп аталады.","Гравитациялық толқындар кеңістік-уақыттағы тербелістер болып табылады.","Гравитациялық толқындар алғаш рет 2015 жылы тікелей тіркелді.","Ғалам кеңейіп келеді.","Космостық микротолқынды фон — ерте ғаламнан қалған сәуле.","Күн энергиясы оның ядросындағы ядролық синтезден пайда болады.","Күн негізінен сутек пен гелийден тұрады.","Күндегі энергияның Жерге жетуі үшін жарыққа шамамен 8 минут 20 секунд қажет.","Күн дақтары қоршаған фотосферадан салқындау болады.","Күн желі Жердің магнит өрісімен әрекеттеседі.","Полярлық шұғыла зарядталған бөлшектердің атмосферамен әрекеттесуінен пайда болады.","Жердің магнит өрісі көптеген зарядталған бөлшектерден қорғайды.","Магнит өрісінің күш сызықтары тұйық болады.","Бірдей магнит полюстері тебіледі.","Әртүрлі магнит полюстері тартылады.","Электр тогы зарядтардың бағытталған қозғалысымен байланысты.","Металдарда электр тогын негізінен электрондар тасымалдайды.","Электр тогының шартты бағыты электрондардың қозғалысына қарсы анықталған.","Ток күші ампермен өлшенеді.","Кернеудің өлшем бірлігі — вольт.","Электр кедергісінің өлшем бірлігі — ом.","Ом заңы кернеу, ток күші және кедергіні байланыстырады.","Өткізгіштің кедергісі оның ұзындығына тәуелді.","Өткізгіштің көлденең қимасы үлкейгенде кедергісі әдетте азаяды.","Металдардың кедергісі температура артқанда көбіне өседі.","Асқынөткізгіштер белгілі жағдайларда электр кедергісін жоғалтады.","Электр қуаты ваттпен өлшенеді.","Электр энергиясы тұрмыста киловатт-сағатпен есептеледі.","Электр шамы электр энергиясын жарық пен жылуға айналдырады.","Жарықдиодтар электр энергиясын жарыққа тиімді айналдыра алады.","Электр қозғалтқышы электр энергиясын механикалық энергияға айналдырады.","Генератор механикалық энергияны электр энергиясына айналдырады.","Трансформатор айнымалы ток кернеуін өзгерте алады.","Трансформатордың жұмысы электромагниттік индукцияға негізделген.","Электромагнитке ток жүргенде магнит өрісі пайда болады.","Тұрақты магниттің магнит өрісі электр тогынсыз да болады.","Конденсатор электр зарядын және электр өрісінің энергиясын жинақтайды.","Батарея химиялық энергияны электр энергиясына айналдырады.","Аккумулятор қайта зарядталуға арналған энергия сақтау құрылғысы.","Статикалық электр денелердің электрленуінен пайда болуы мүмкін.","Шаштың тараққа тартылуы электрленумен байланысты.","Найзағай электр зарядтарының бөлінуі мен разрядынан пайда болады.","Жерге тұйықтау электр қауіпсіздігін арттыруға көмектеседі.","Резеңке көптеген жағдайларда электр тогын нашар өткізеді.","Мыс электр тогын жақсы өткізетін металдардың бірі.","Электр тізбегіндегі сақтандырғыш артық ток кезінде тізбекті ажырата алады.","Температура дененің жылулық күйін сипаттайды.","Цельсий мен Кельвин температура шкалалары өзара байланысты.","Абсолют нөл температурасы 0 К-ге тең.","Абсолют нөл шамамен −273,15 °C-қа сәйкес келеді.","Жылу өздігінен жоғары температурадан төмен температураға беріледі.","Жылу өткізгіштік қатты денелерде маңызды рөл атқарады.","Конвекция сұйықтар мен газдарда жылуды тасымалдайды.","Сәулелену арқылы жылу вакуумда да беріледі.","Күн Жерді сәулелену арқылы жылытады.","Металдар жылуды көбіне жақсы өткізеді.","Ауа көптеген қатты материалдарға қарағанда жылуды нашар өткізеді.","Термос жылу алмасуды азайту үшін бірнеше тәсілді қолданады.","Судың қалыпты атмосфералық қысымдағы қайнау температурасы 100 °C.","Судың қату температурасы қалыпты қысымда 0 °C.","Биік тауда атмосфералық қысым төмен болғандықтан су төменірек температурада қайнайды.","Булану сұйықтың бетінен кез келген температурада жүре алады.","Булану кезінде сұйық салқындауы мүмкін.","Конденсация кезінде газ сұйыққа айналады.","Мұз ерігенде температурасы фазалық ауысу барысында тұрақты қалуы мүмкін.","Судың меншікті жылу сыйымдылығы көптеген заттардан жоғары.","Жылу қозғалтқыштары жылу энергиясының бір бөлігін механикалық жұмысқа айналдырады.","Ешбір жылу қозғалтқышы алынған жылудың барлығын жұмысқа айналдыра алмайды.","Тоңазытқыш жылуды салқын ортадан жылы ортаға тасымалдау үшін энергия жұмсайды.","Жылу сорғысы ғимараттарды жылытуға қолданылуы мүмкін.","Қысым газ молекулаларының ыдыс қабырғасымен соқтығысуынан туындайды.","Газ қыздырылғанда тұрақты көлемде оның қысымы артуы мүмкін.","Газ кеңейгенде сыртқы ортаға жұмыс атқара алады.","Ауа қысымы биіктік артқан сайын әдетте төмендейді.","Барометр атмосфералық қысымды өлшейді.","Манометр газ немесе сұйық қысымын өлшеуге қолданылады.","Архимед күші сұйыққа немесе газға батырылған денеге әсер етеді.","Кемелер болаттан жасалса да, орташа тығыздығы жеткілікті аз болғандықтан жүзе алады.","Мұздың тығыздығы сұйық судың тығыздығынан төмен.","Судың беткі керілуі кейбір жәндіктердің су бетінде қозғалуына мүмкіндік береді.","Капиллярлық құбылыс өсімдіктерде судың қозғалысына қатысады.","Сұйықтың тұтқырлығы оның ағуына кедергі жасайды.","Сұйық ағынының жылдамдығы құбырдың көлденең қимасына тәуелді.","Ұшақ қанатының көтергіш күші ауа ағыны мен қысым айырмасына байланысты.","Доптың айналуы оның ұшу траекториясын өзгерте алады.","Тұман ұсақ сұйық тамшыларынан тұрады.","Дыбыс толқындары ауада бойлық толқындар ретінде таралады.","Ауадағы дыбыстың жылдамдығы 20 °C-та шамамен 343 м/с.","Судағы дыбыстың жылдамдығы ауадағыдан жоғары.","Қатты денелерде дыбыс көбіне газдарға қарағанда жылдамырақ таралады.","Дыбыстың жиілігі герцпен өлшенеді.","Адамның есту диапазоны шамамен 20 Гц-тен 20 000 Гц-ке дейін.","Ультрадыбыс жиілігі 20 000 Гц-тен жоғары дыбысқа жатады.","Ультрадыбыс медицинада ішкі мүшелерді зерттеуге қолданылады.","Жарғанаттар бағдарлану үшін эхолокацияны пайдаланады.","Дельфиндер де эхолокация арқылы қоршаған ортасын анықтай алады.","Эхо дыбыстың шағылуынан пайда болады.","Дыбыс қаттылығы амплитудамен байланысты.","Дыбыс биіктігі оның жиілігіне байланысты.","Музыкалық аспаптың ішегі тербелгенде дыбыс пайда болады.","Резонанс жүйенің тербеліс амплитудасын арттыра алады.","Әрбір дененің өзіндік тербеліс жиіліктері болуы мүмкін.","Маятниктің тербеліс периоды оның ұзындығына тәуелді.","Кіші тербелістер кезінде қарапайым маятниктің периоды массасына тәуелді емес.","Серіппеге ілінген дене гармониялық тербеліс жасай алады.","Толқын энергия тасымалдайды, бірақ затты міндетті түрде бірге тасымалдамайды.","Сейсмикалық толқындар жер сілкінісі кезінде Жер қойнауында таралады.","P-толқындар қатты, сұйық және газ тәрізді орталарда тарала алады.","S-толқындар сұйық ортада таралмайды.","Механикалық толқынның таралуы үшін материалдық орта қажет.","Электромагниттік толқындар вакуумда тарала алады.","Толқын ұзындығы жиілік пен таралу жылдамдығына байланысты.","Жиілік артса, бірдей жылдамдықта толқын ұзындығы азаяды.","Радиобайланыс электромагниттік толқындарды пайдаланады.","GPS жүйесі серіктерден келетін сигналдардың уақытын өлшеуге сүйенеді.","Атомдардың энергия деңгейлері квантталған.","Электрондар атомда кез келген энергияға ие бола алмайды.","Кванттық физика өте ұсақ бөлшектердің қасиеттерін зерттейді.","Электрон әрі бөлшектік, әрі толқындық қасиеттер көрсетеді.","Фотоэффект жарықтың энергиясы кванттармен тасымалданатынын көрсетеді.","Күн батареялары фотоэлектрлік әсерді пайдаланады.","Лазер жарығы бағытталған әрі белгілі қасиеттерге ие болады.","Кванттық туннельдеу бөлшектердің классикалық тұрғыда өте алмайтын тосқауылдан өту ықтималдығын сипаттайды.","Атом ядросы протондар мен нейтрондардан тұрады.","Протон оң зарядқа ие.","Нейтронның электр заряды нөлге тең.","Физикадағы скаляр шаманың тек сандық мәні болады.","Векторлық шаманың сандық мәні де, бағыты да болады.","Масса скаляр шамаға жатады.","Күш векторлық шамаға жатады.","Жылдамдықтың бағыты қозғалыс бағытын көрсетеді.","Үдеу жылдамдықтың уақыт бойынша өзгеруін сипаттайды.","Бірқалыпты қозғалыста дене тең уақыт аралығында бірдей жол жүреді.","Бірқалыпты үдемелі қозғалыста үдеу тұрақты болады.","Қозғалыс салыстырмалы құбылыс болып саналады.","Бір дене әртүрлі санақ жүйелерінде әртүрлі жылдамдықпен қозғалуы мүмкін.","Санақ жүйесі дененің орнын анықтау үшін қажет.","Материялық нүкте ұғымы дененің өлшемдерін елемеуге болатын жағдайда қолданылады.","Қисық сызықты қозғалыста жылдамдық бағыты өзгеріп отыруы мүмкін.","Шеңбер бойымен бірқалыпты қозғалыста жылдамдық модулі тұрақты болғанымен, үдеу нөлге тең емес.","Центрге тартқыш үдеу шеңбердің центріне қарай бағытталады.","Шеңбер бойымен қозғалыста центрге тартқыш үдеу жылдамдық квадратына тура пропорционал.","Айналу жиілігі бір секундтағы айналым санын көрсетеді.","Айналу периоды бір толық айналымға кететін уақытты білдіреді.","Бұрыштық жылдамдық радиан секундпен өлшенеді.","Радиан — бұрышты өлшеудің өлшем бірлігі.","Егер дененің орын ауыстыруы нөл болса, оның жүрген жолы міндетті түрде нөл болмайды.","Орташа жылдамдық жүрген жолды толық уақытқа бөлу арқылы табылады.","Орын ауыстыру бастапқы және соңғы орындарды байланыстырады.","Дене бірқалыпты қозғалғанда жол уақытқа тура пропорционал болады.","Қозғалыс графигінің көлбеулігі орын мен уақыт графигінде жылдамдықты береді.","Жылдамдық пен уақыт графигінің астындағы аудан орын ауыстыруды береді.","Үдеу мен уақыт графигінің астындағы аудан жылдамдық өзгерісін береді.","Дене жоғары лақтырылғанда ең жоғарғы нүктеде оның лездік жылдамдығы нөл болады.","Жоғары лақтырылған денеге ауа кедергісі ескерілмесе, ауырлық күші әсер етеді.","Еркін түскен дененің жылдамдығы уақыт өткен сайын артады.","Еркін түсу кезінде жүрген жол уақыттың квадратына пропорционал болады.","Ауырлық күшінің үдеуі географиялық орынға байланысты аздап өзгереді.","Экватордағы ауырлық үдеуі полюстердегі мәнінен сәл төмен.","Дене салмағы тірекке немесе аспаға түсіретін күш болып табылады.","Масса мен салмақ бірдей физикалық ұғымдар емес.","Лифт жоғары үдегенде адамның тірекке түсіретін күші артуы мүмкін.","Лифт төмен үдегенде адамның көрінерлік салмағы азаюы мүмкін.","Еркін түсу кезінде адамның көрінерлік салмағы нөлге жуық болады.","Дене тірекке әсер ететін күшпен бірге тірекке қарсы күш те түсіреді.","Тіректің реакция күші тірекке перпендикуляр бағытталуы мүмкін.","Серпімділік күші дене деформацияланған кезде пайда болады.","Гук заңы серпімді деформацияның белгілі бір шегінде орындалады.","Серіппенің қатаңдығы неғұрлым үлкен болса, оны созу соғұрлым қиын.","Пластикалық деформация дененің бастапқы пішінін толық қалпына келтірмеуі мүмкін.","Серпімділік потенциалдық энергияны серіппеде жинақтауға болады.","Деформация дененің пішіні немесе өлшемінің өзгеруі болып табылады.","Созылу деформациясы дененің ұзындығын арттырады.","Сығылу деформациясы дененің ұзындығын азайтады.","Ығысу деформациясы дене қабаттарының бір-біріне қатысты жылжуымен сипатталады.","Кернеу материалдың ішкі күштерін сипаттайтын шама.","Юнг модулі материалдың серпімділік қасиетін сипаттайды.","Болаттың серпімділік модулі резеңкеге қарағанда әлдеқайда жоғары.","Резеңке үлкен деформацияға ұшырай алады.","Көптеген материалдардың беріктігі температураға тәуелді.","Құрылыс көпірлерінде температуралық ұлғаю ескеріледі.","Рельстер арасында температура өзгерісін ескеретін саңылаулар қалдырылуы мүмкін.","Металл қыздырылғанда көбіне ұлғаяды.","Салқындағанда көптеген денелердің көлемі азаяды.","Судың тығыздығы шамамен 4 °C-та ең жоғары болады.","Су қатқанда көлемі ұлғаяды.","Архимед күші ығыстырылған сұйықтың салмағына тең.","Дененің жүзуі оның орташа тығыздығына байланысты.","Дене сұйыққа толық батса да, сұйықтың бетінде жүзе алады.","Сұйықтағы қысым тереңдік артқан сайын көбейеді.","Сұйықтың бір деңгейіндегі қысым тыныштықта барлық бағытта беріледі.","Паскаль заңы гидравликалық құрылғылардың жұмысын түсіндіреді.","Гидравликалық престе аз күшпен үлкен күш алуға болады.","Гидравликалық жүйеде күштің артуы орын ауыстырудың азаюымен қатар жүреді.","Сұйықтың қысымы оның тығыздығына да тәуелді.","Атмосфералық қысым ауа бағанының салмағынан пайда болады.","Қалыпты атмосфералық қысым шамамен 101 325 Па.","Сорғы сұйықты тасымалдау үшін қысым айырмасын пайдаланады.","Сабанмен сусын ішкенде ауыздағы қысымның төмендеуі маңызды рөл атқарады.","Вакуум толық бос кеңістікке жуық күйді білдіреді.","Нақты вакуумда да кейбір кванттық құбылыстар сақталады.","Бернулли принципі ағын жылдамдығы мен қысым арасындағы байланысты сипаттайды.","Вентури түтігінде тар бөліктегі ағын жылдамдығы артуы мүмкін.","Сұйық ағыны ламинарлық немесе турбуленттік болуы мүмкін.","Турбуленттік ағын ретсіз құйындармен сипатталады.","Тұтқырлық сұйықтың ішкі үйкелісін сипаттайды.","Механикалық жұмыс күш пен орын ауыстырудың бағыттарына тәуелді.","Күш орын ауыстыруға перпендикуляр болса, оның атқаратын жұмысы нөлге тең.","Энергия бір түрден екінші түрге айнала алады.","Энергияның өлшем бірлігі — джоуль.","Қуат жұмыстың орындалу жылдамдығын сипаттайды.","Бірдей жұмысты аз уақытта орындаған құрылғының қуаты жоғары болады.","Пайдалы әсер коэффициенті пайдалы энергияның жұмсалған энергияға қатынасын көрсетеді.","ПӘК идеал құрылғыда 100 пайызға тең болуы мүмкін.","Нақты механизмдерде энергияның бір бөлігі көбіне жылуға айналады.","Энергия сақталу заңы табиғаттағы негізгі заңдардың бірі.","Маятниктің тербелісінде кинетикалық және потенциалдық энергия бір-біріне айналады.","Тербелістің шеткі нүктелерінде серіппелі маятниктің кинетикалық энергиясы нөл болуы мүмкін.","Тепе-теңдік нүктесінде серіппелі маятниктің кинетикалық энергиясы ең жоғары болады.","Серпімді соқтығысу кезінде толық кинетикалық энергия сақталады.","Серпімсіз соқтығысу кезінде кинетикалық энергияның бір бөлігі басқа түрлерге айналады.","Автокөлік тежелгенде кинетикалық энергияның едәуір бөлігі жылуға айналады.","Энергияны сақтау мен энергияны үнемдеу бірдей мағына бермейді.","Күн панельдері жарық энергиясын электр энергиясына айналдырады.","Жел турбиналары желдің кинетикалық энергиясын электр энергиясына айналдырады.","Гидроэлектр станциялары судың энергиясын электр энергиясына айналдырады.","Жылу мөлшері джоульмен өлшенеді.","Меншікті жылу сыйымдылығы заттың бір килограмын бір градусқа қыздыруға қажет жылуды сипаттайды.","Меншікті балқу жылуы затты балқытуға қажет энергияны сипаттайды.","Меншікті булану жылуы сұйықты буға айналдыруға қажет энергияны сипаттайды.","Қардың үстіне тұз себу мұздың еру температурасын төмендетуі мүмкін.","Мұздың бетінде жұқа су қабаты пайда болып, сырғанауға әсер етуі мүмкін.","Қысым артқанда судың қайнау температурасы жоғарылайды.","Қысым төмендегенде судың қайнау температурасы төмендейді.","Қысымды қазандықтарда су жоғары температурада қайнай алады.","Жылу оқшаулағыш материалдар жылу берілуін баяулатады.","Жүн киім жылуды өздігінен өндірмейді, денеден жылу жоғалуын азайтады.","Қара түсті беттер сәулелік энергияны жақсырақ жұтуы мүмкін.","Жылтыр беттер жылулық сәулені жақсы шағылыстыра алады.","Жылы ауа әдетте суық ауаға қарағанда тығыздығы төмен болады.","Конвекциялық ағындар атмосферадағы ауа қозғалысына ықпал етеді.","Теңіз бризі құрлық пен судың әртүрлі қызуынан пайда болуы мүмкін.","Жылыту радиаторлары жылуды конвекция және сәулелену арқылы береді.","Термометр температураның өзгеруін белгілі бір физикалық қасиет арқылы анықтайды.","Сұйық термометрлер сұйықтың жылулық ұлғаюын пайдаланады.","Инфрақызыл термометр заттың жылулық сәулеленуін өлшейді.","Электр зарядының екі түрі бар: оң және теріс.","Бірдей таңбалы электр зарядтары бір-бірін тебеді.","Әртүрлі таңбалы электр зарядтары бір-бірін тартады.","Электр заряды кулонмен өлшенеді.","Элементар электр зарядының модулі шамамен 1,602×10⁻¹⁹ Кл.","Электронның заряды теріс таңбалы.","Протонның заряды оң таңбалы.","Бейтарап атомдағы протондар мен электрондар саны тең болады.","Кулон заңы электр зарядтарының өзара әсер күшін сипаттайды.","Зарядтар арақашықтығы артқанда олардың өзара әсер күші азаяды.","Электр өрісі зарядтарға күшпен әсер етеді.","Электр өрісінің кернеулігі Н/Кл немесе В/м өлшемімен беріледі.","Электр өрісінің күш сызықтары оң зарядтан шығып, теріс зарядқа бағытталады.","Өткізгіштің электростатикалық тепе-теңдігінде оның ішіндегі электр өрісі нөлге тең болады.","Металл қаптама электр өрісінен қорғануға көмектесе алады.","Электр сыйымдылығы фарадпен өлшенеді.","Конденсатордың сыйымдылығы оның геометриясы мен диэлектригіне тәуелді.","Диэлектрик конденсатордың сыйымдылығын арттыра алады.","Электр өрісінде энергия жинақталады.","Кернеу электр потенциалдарының айырмасын сипаттайды.","Электромагниттік индукция өзгермелі магнит ағыны кезінде пайда болуы мүмкін.","Фарадей заңы индукциялық электр қозғаушы күшті сипаттайды.","Ленц ережесі индукциялық токтың бағытын анықтауға көмектеседі.","Индукциялық плита ыдысты электромагниттік индукция арқылы қыздырады.","Сым орамдарының саны генератордың индукциялық кернеуіне әсер етеді.","Айнымалы токтың бағыты уақыт бойынша өзгеріп отырады.","Тұрмыстық электр желісіндегі ток әдетте айнымалы ток болады.","Электр желісіндегі жиілік көптеген елдерде 50 Гц.","Электр трансформаторы тұрақты токпен қалыпты жағдайда жұмыс істемейді.","Электр қозғалтқыштарында магнит өрістері айналу моментін тудырады.","Динамик электр сигналын дыбыс тербелістеріне айналдырады.","Микрофон дыбыс тербелістерін электр сигналына айналдырады.","Электромагниттік толқындар электр және магнит өрістерінің тербелістерінен тұрады.","Ұялы байланыс радиожиіліктегі электромагниттік толқындарды пайдаланады.","Wi-Fi деректерді радиотолқындар арқылы жеткізеді.","Радар нысандарды радиотолқындардың шағылуы арқылы анықтайды.","Доплер эффектісі бақылаушы мен толқын көзі қозғалғанда байқалады.","Жақындап келе жатқан жедел жәрдемнің сиренасы жоғарырақ естілуі мүмкін.","Доплер эффектісі астрономияда жұлдыздар мен галактикалардың қозғалысын зерттеуге көмектеседі.","Қызыл ығысу жарық толқын ұзындығының ұзаруын білдіреді.","Атомның көлемінің көп бөлігі ядродан тыс электрондық аймаққа тиесілі.","Атом ядросының өлшемі атом өлшемінен ондаған мың есе кіші болуы мүмкін.","Изотоптарда протон саны бірдей, нейтрон саны әртүрлі болады.","Радиоактивті ыдырау кездейсоқ сипатқа ие.","Жартылай ыдырау периоды радиоактивті ядролар санының екі есе азаю уақытын сипаттайды.","Радиоактивті сәулеленудің альфа, бета және гамма түрлері бар.","Альфа-бөлшек екі протон мен екі нейтроннан тұрады.","Бета-ыдырау кезінде атом ядросында нейтрон немесе протон түрленуі мүмкін.","Гамма-сәулелену ядроның энергиясын азайта алады.","Ядролық бөліну ауыр ядроның бөлшектенуімен байланысты.","Ядролық синтез жеңіл ядролардың бірігуі арқылы жүреді.","Күндегі ядролық синтез негізінен сутекті гелийге айналдырады.","Ядролық реакцияларда масса мен энергияның байланысы маңызды.","Эйнштейннің әйгілі теңдеуі E=mc² масса мен энергия байланысын көрсетеді.","Нейтрино затпен өте әлсіз әрекеттеседі.","Ғарыштан Жерге үнемі космостық сәулелер келіп түседі.","Мюондар атмосферада космостық бөлшектердің әрекеттесуінен пайда болуы мүмкін.","Бөлшектер үдеткіштері зарядталған бөлшектердің энергиясын арттырады.","Үлкен адрон коллайдері бөлшектерді өте жоғары энергияларда соқтығыстырады.","Хиггс бозоны 2012 жылы тәжірибе жүзінде ашылды.","Жер қыртысындағы тау жыныстарының қозғалысы сейсмикалық толқындар тудырады.","Жер сілкінісінің магнитудасы оның өлшемін сипаттайтын көрсеткіш.","Сейсмограф жер тербелістерін тіркейді.","Жердің ішкі құрылысы сейсмикалық толқындар арқылы зерттеледі.","Жердің сыртқы ядросы сұйық күйде болады.","Жердің ішкі ядросы негізінен темір мен никельден тұрады.","Мантиядағы заттар ұзақ уақыт аралығында баяу аға алады.","Мұхит толқындары энергия тасымалдайды.","Цунами ашық мұхитта өте үлкен жылдамдықпен таралуы мүмкін.","Цунами толқындарының биіктігі жағалауға жақындағанда күрт артуы мүмкін.","Желдің пайда болуына атмосфералық қысым айырмашылығы әсер етеді.","Дауылдарда ауа массалары айналмалы қозғалыс жасайды.","Торнадо өте күшті айналмалы ауа ағыны болуы мүмкін.","Бұлттар ауадағы ұсақ су тамшылары мен мұз кристалдарынан құралады.","Қар ұлпаларының пішіні температура мен ылғалдылыққа тәуелді.","Мұздықтардың қозғалысы ауырлық күші мен мұздың деформациясына байланысты.","Тау шаңғысы қозғалысында үйкеліс пен ауа кедергісі маңызды.","Велосипедші еңкейгенде бұрылыс кезіндегі күштердің тепе-теңдігін өзгертеді.","Автокөлік бұрылыста центрге тартқыш үдеуге ие болады.","Жолдың көлбеу бұрышы көліктің бұрылыстағы қозғалысына әсер етеді.","Жарықтың сыну көрсеткіші вакуумдағы жарық жылдамдығының ортадағы жылдамдыққа қатынасымен анықталады.","Жарық бір ортадан екінші ортаға өткенде бағытын өзгертуі мүмкін.","Толық ішкі шағылу белгілі бір шектік бұрыштан асқанда орын алады.","Мираж жарықтың температурасы әртүрлі ауа қабаттарында сынуынан пайда болуы мүмкін.","Призма ақ жарықты спектрге бөле алады.","Дифракция толқындардың кедергіні айналып өтуін немесе саңылаудан таралуын сипаттайды.","Жарықтың интерференциясы жарық және қараңғы жолақтар тудыруы мүмкін.","Голограмма жарық толқындарының интерференциясын пайдаланады.","Күн сәулесінің спектрінде көрінетін жарықпен қатар ультракүлгін және инфрақызыл сәулелер бар.","Адам көзі жарықтың өте аз мөлшеріне бейімделе алады.","Қараңғыға бейімделу толық қалыптасу үшін біраз уақыт қажет.","Фотон энергиясы оның жиілігіне тура пропорционал.","Жиілігі жоғары фотонның энергиясы үлкен болады.","Ультракүлгін фотондар көрінетін жарық фотондарынан энергиясы жоғары болуы мүмкін.","Рентген сәулелері заттың ішкі құрылымын зерттеуге мүмкіндік береді.","Компьютерлік томография рентген сәулелерінің көмегімен қабаттық кескіндер жасайды.","Магниттік-резонанстық томография күшті магнит өрістері мен радиотолқындарды қолданады.","Оптикалық пинцеттер микроскопиялық бөлшектерді жарық көмегімен ұстай алады.","Лазерлік өлшеу жүйелері қашықтықты өте дәл анықтай алады.","Интерферометрлер өте кішкентай ұзындық өзгерістерін өлшеуге қабілетті."];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const chatKey=(a,b)=>[a,b].sort().join('__chat__');
+
+function openChat(u){
+  activeChatFriend=users_cache?.[u] || { username: u, fullname: u };
+  // Жоғарыдан жиналған қолданушыларды алу үшін қарапайым шақыру
+  loadUsersFromCloud().then(us => {
+    activeChatFriend = us[u];
+    $('chat-target-name').innerText=activeChatFriend.fullname;
+    $('chat-target-avatar').src=activeChatFriend.avatar||DEFAULT_AVATAR;
+    renderChatMessages();
+  });
+}
+
+async function renderChatMessages(){
+  const box=$('chat-messages-box');
+  if(!activeChatFriend){box.innerHTML='<div class="muted" style="text-align:center;margin-top:40px">Сөйлесуді бастау үшін досыңызды таңдаңыз</div>';return}
+  const k=chatKey(currentUser.username,activeChatFriend.username);
+  const log = await getMessagesFromCloud(k);
+  box.innerHTML=log.length?log.map(m=>`<div class="message ${m.sender===currentUser.username?'sent':'received'} ${m.fx?'fx':''}">${esc(m.text)}<small>${esc(new Date(m.created_at).toLocaleTimeString('kk-KZ',{hour:'2-digit',minute:'2-digit'}))}</small></div>`).join(''):'<div class="muted" style="text-align:center;margin-top:40px">Хабарлама жазыңыз!</div>';
+  box.scrollTop=box.scrollHeight;
+}
+
+let users_cache = null;
+async function pushMsg(text,fx){
+  if(!activeChatFriend){alert('Алдымен досыңызды таңдаңыз');return}
+  const k=chatKey(currentUser.username,activeChatFriend.username);
+  await saveMessageToCloud(k, currentUser.username, text, fx||false);
+  renderChatMessages();
+}
+
+function sendChatMessage(){const i=$('chat-input'),t=i.value.trim();if(!t)return;pushMsg(t);i.value=''}
+function sendRandomProblem(){pushMsg('🎲 Есеп: '+pick(PROBLEMS))}
+function sendFact(){pushMsg('💡 Білесің бе? '+pick(FACTS))}
+function sendAnswerCheck(){const t=$('chat-input').value.trim();if(!t){alert('Жауабыңызды жазып, қайта басыңыз');return}pushMsg('✅ Менің жауабым: '+t);$('chat-input').value=''}
+async function clearChat(){
+  if(!activeChatFriend||!confirm('Чатты тазалайсыз ба?'))return;
+  const k=chatKey(currentUser.username,activeChatFriend.username);
+  await supabaseClient.from('messages').delete().eq('room_key', k);
+  renderChatMessages();
+}
+function togglePicker(){const p=$('picker');p.style.display=p.style.display==='none'?'block':'none'}
+function initPicker(){$('chat-sec').innerHTML=Object.keys(DB).map(s=>`<option>${esc(s)}</option>`).join('');renderPicker()}
+function renderPicker(){const s=$('chat-sec').value;$('chat-presets').innerHTML=FL.map((f,i)=>f.sec===s?`<button onclick="pickF(${i})">${esc(f.n)}</button>`:'').join('')}
+function pickF(i){pushMsg(`📐 ${FL[i].n}: ${FL[i].m}`,true)}
+
+/* CALCULATOR */
+let calcVal='0';
+$('calc-grid').innerHTML=[['C','op'],['⌫','op'],['(','op'],[')','op'],'7','8','9',['/','op'],'4','5','6',['*','op'],'1','2','3',['-','op'],'0','.',['^','op'],['+','op']].map(b=>{const[v,c]=Array.isArray(b)?b:[b,''];return `<button class="calc-btn ${c}" onclick="calcKey('${v}')">${v}</button>`}).join('')+'<button class="calc-btn" style="grid-column:span 4;background:var(--accent-gradient);color:#000" onclick="calcKey(\'=\')">=</button>';
+function calcKey(v){
+ if(v==='C')calcVal='0';else if(v==='⌫')calcVal=calcVal.slice(0,-1)||'0';
+ else if(v==='='){try{if(!/^[\d+\-*/().^ ]+$/.test(calcVal))throw 0;calcVal=String(Function('"use strict";return ('+calcVal.replace(/\^/g,'**')+')')())}catch(e){calcVal='Қате!'}}
+ else calcVal=(calcVal==='0'||calcVal==='Қате!')?v:calcVal+v;
+ $('calc-screen').value=calcVal}
+
+/* FORMULAS */
+const DB={
+"Механика":{
+"Кинематика":`Бірқалыпты қозғалыс жылдамдығы|v = s / t
+Үдеу|a = (v − v₀) / t
+Орын ауыстыру|s = v₀t + at²/2
+Жолдың жылдамдықпен байланысы|v² − v₀² = 2as
+Еркін түсу биіктігі|h = gt²/2
+Еркін түсу жылдамдығы|v = g·t
+Центрге тартқыш үдеу|a = v² / r
+Бұрыштық жылдамдық|ω = 2π / T
+Айналу жиілігі|ν = 1 / T
+Сызықтық жылдамдық|v = ω·r
+Ұшу алыстығы|L = v₀² sin2α / g
+Көтерілу биіктігі|H = v₀² sin²α / 2g`,
+"Динамика":`Ньютонның бірінші заңы|ΣF = 0
+Ньютонның екінші заңы|F = m·a
+Ньютонның үшінші заңы|F₁ = −F₂
+Бүкіләлемдік тартылыс заңы|F = G·m₁m₂ / r²
+Ауырлық күші|F = m·g
+Дене салмағы|P = m·g
+Гук заңы|F = k·x
+Үйкеліс күші|F = μ·N
+Дене импульсі|p = m·v
+Күш импульсі|F·t = Δp
+Механикалық жұмыс|A = F·s·cosα
+Қуат|N = A / t
+Кинетикалық энергия|Eₖ = mv²/2
+Потенциалдық энергия|Eₚ = m·g·h
+Серпімді дене энергиясы|Eₚ = kx²/2
+Пайдалы әсер коэффициенті|η = Aпайд / Aтолық · 100%`,
+"Статика және гидростатика":`Күш моменті|M = F·d
+Моменттер ережесі|ΣM = 0
+Иін тепе-теңдігі|F₁ / F₂ = l₂ / l₁
+Тығыздық|ρ = m / V
+Қысым|p = F / S
+Гидростатикалық қысым|p = ρ·g·h
+Архимед күші|Fₐ = ρ·g·V
+Паскаль заңы (гидравликалық пресс)|F₂ = F₁·S₂ / S₁`},
+"Молекулалық физика және термодинамика":{
+"Молекулалық-кинетикалық теория":`Зат мөлшері|ν = m / M
+Молекулалар саны|N = ν·Nₐ
+МКТ негізгі теңдеуі|p = (1/3)·m₀·n·v²
+Қысым мен температура|p = n·k·T
+Менделеев–Клапейрон теңдеуі|p·V = (m/M)·R·T
+Бойль–Мариотт заңы (T=const)|p₁V₁ = p₂V₂
+Гей-Люссак заңы (p=const)|V₁/T₁ = V₂/T₂
+Шарль заңы (V=const)|p₁/T₁ = p₂/T₂
+Бірыңғай газ күйі теңдеуі|p₁V₁/T₁ = p₂V₂/T₂
+Салыстырмалы ылғалдылық|φ = p / pₙ · 100%`,
+"Термодинамика":`Идеал газ ішкі энергиясы|U = (3/2)·ν·R·T
+Газ жұмысы|A = p·ΔV
+Термодинамиканың I заңы|Q = ΔU + A
+Қыздыру жылу мөлшері|Q = c·m·Δt
+Балқу жылуы|Q = λ·m
+Булану жылуы|Q = L·m
+Отынның жануы|Q = q·m
+Жылу балансы|Q₁ + Q₂ + … = 0
+Жылу машинасының ПӘК-і|η = (Q₁ − Q₂) / Q₁
+Карно циклінің ПӘК-і|η = (T₁ − T₂) / T₁`},
+"Электродинамика":{
+"Электростатика":`Кулон заңы|F = k·q₁q₂ / r²
+Электр өрісінің кернеулігі|E = F / q
+Нүктелік заряд өрісі|E = k·q / r²
+Потенциал|φ = W / q
+Кернеу|U = A / q
+Біртекті өріс кернеуі|U = E·d
+Сыйымдылық|C = q / U
+Жазық конденсатор сыйымдылығы|C = ε₀·ε·S / d
+Конденсатор энергиясы|W = CU²/2`,
+"Тұрақты ток":`Ток күші|I = q / t
+Ом заңы (тізбек бөлігі)|I = U / R
+Өткізгіш кедергісі|R = ρ·l / S
+Тізбектей қосылу|R = R₁ + R₂ + …
+Параллель қосылу|1/R = 1/R₁ + 1/R₂ + …
+Ток жұмысы|A = U·I·t
+Ток қуаты|P = U·I
+Джоуль–Ленц заңы|Q = I²·R·t
+Толық тізбек үшін Ом заңы|I = ε / (R + r)`,
+"Магнетизм және индукция":`Ампер күші|F = I·B·l·sinα
+Лоренц күші|F = q·v·B·sinα
+Магнит ағыны|Φ = B·S·cosα
+Электромагниттік индукция (Фарадей)|ε = −ΔΦ / Δt
+Қозғалатын өткізгіштегі ЭҚК|ε = B·l·v·sinα
+Өздік индукция ЭҚК-і|ε = −L·ΔI / Δt
+Катушка энергиясы|W = L·I²/2`,
+"Тербелістер мен толқындар":`Математикалық маятник периоды|T = 2π√(L / g)
+Серіппелі маятник периоды|T = 2π√(m / k)
+Томсон формуласы|T = 2π√(L·C)
+Гармониялық тербеліс|x = A·cos(ωt + φ₀)
+Циклдік жиілік|ω = 2πν
+Толқын ұзындығы|λ = v·T = v / ν
+Трансформация коэффициенті|k = U₁/U₂ = N₁/N₂`},
+"Оптика":{
+"Геометриялық және толқындық оптика":`Жарықтың шағылу заңы|α = β
+Жарықтың сыну заңы|n₁·sinα = n₂·sinβ
+Абсолют сыну көрсеткіші|n = c / v
+Толық шағылудың шекті бұрышы|sinα₀ = 1 / n
+Жұқа линза формуласы|1/F = 1/d + 1/f
+Линза үлкейтуі|Γ = f / d
+Линзаның оптикалық күші|D = 1 / F
+Интерференция максимумы|Δ = k·λ
+Дифракциялық тор|d·sinφ = k·λ`},
+"Атомдық физика":{
+"Атом және фотондар":`Фотон энергиясы|E = h·ν
+Фотон импульсі|p = h / λ
+Фотоэффект үшін Эйнштейн теңдеуі|hν = Aшығу + mv²/2
+Фотоэффекттің қызыл шекарасы|νₘᵢₙ = Aшығу / h
+Бор постулаты|hν = Eₖ − Eₙ
+Сутек атомы энергиясы|Eₙ = −13,6 / n² эВ`},
+"Ядролық физика":{
+"Атом ядросы":`Массалық сан|A = Z + N
+Масса ақауы|Δm = Z·mₚ + N·mₙ − Mя
+Ядроның байланыс энергиясы|E = Δm·c²
+Радиоактивті ыдырау заңы|N = N₀·2^(−t/T)
+Ыдырау тұрақтысы|λ = ln2 / T
+Радиоактивті препарат активтілігі|A = λ·N`},
+"Кванттық физика және салыстырмалылық":{
+"Кванттық физика":`Планк формуласы|E = h·ν
+Де Бройль толқыны|λ = h / (m·v)
+Гейзенбергтің белгісіздік принципі|Δx·Δp ≥ ħ/2
+Шрёдингер теңдеуі|Ĥψ = Eψ
+Вин ығысу заңы|λₘₐₓ·T = b
+Стефан–Больцман заңы|R = σ·T⁴`,
+"Салыстырмалылық теориясы":`Масса мен энергия байланысы|E = m·c²
+Уақыттың ұзаруы|t = t₀ / √(1 − v²/c²)
+Ұзындықтың қысқаруы|l = l₀·√(1 − v²/c²)
+Релятивистік импульс|p = m·v / √(1 − v²/c²)
+Жылдамдықтарды қосу|v = (v₁ + v₂) / (1 + v₁v₂/c²)`}};
+const FL=[];
+Object.entries(DB).forEach(([sec,subs])=>Object.entries(subs).forEach(([sub,txt])=>txt.trim().split('\n').forEach(l=>{const[n,m]=l.split('|');FL.push({sec,sub,n:n.trim(),m:m.trim()})})));
+let fSec='';
+function setSec(i){fSec=i<0?'':Object.keys(DB)[i];renderFormulas()}
+function renderFormulas(){
+ const q=$('formula-search').value.toLowerCase();
+ $('formula-tabs').innerHTML=`<button class="chip ${fSec?'':'on'}" onclick="setSec(-1)">Барлығы (${FL.length})</button>`+Object.keys(DB).map((s,i)=>`<button class="chip ${fSec===s?'on':''}" onclick="setSec(${i})">${esc(s)}</button>`).join('');
+ let h='',last='';
+ FL.filter(f=>(!fSec||f.sec===fSec)&&(f.n+f.m+f.sub+f.sec).toLowerCase().includes(q)).forEach(f=>{
+  const k=f.sec+f.sub;if(k!==last){if(last)h+='</div>';h+=`<h4 class="sub">${esc(f.sec)} › ${esc(f.sub)}</h4><div class="grid">`;last=k}
+  h+=`<div class="formula-card"><div class="formula-title">${esc(f.n)}</div><div class="formula-math-text">${esc(f.m)}</div></div>`});
+ $('formulas-container').innerHTML=last?h+'</div>':'<p class="muted">Ештеңе табылмады</p>'}
+
+/* ЕСЕПТЕУІШ (50+ ФОРМУЛА) */
+const SV=[
+["Бірқалыпты қозғалыс жылдамдығы","v = s / t","v","м/с","s:Жол:м;t:Уақыт:с","s/t"],
+["Үдеу","a = (v − v₀) / t","a","м/с²","v:Соңғы жылдамдық:м/с;v0:Бастапқы жылдамдық:м/с;t:Уақыт:с","(v-v0)/t"],
+["Орын ауыстыру","s = v₀t + at²/2","s","м","v0:Бастапқы жылдамдық:м/с;a:Үдеу:м/с²;t:Уақыт:с","v0*t+a*t*t/2"],
+["Еркін түсу биіктігі","h = gt²/2","h","м","t:Уақыт:с","9.8*t*t/2"],
+["Центрге тартқыш үдеу","a = v² / r","a","м/с²","v:Жылдамдық:м/с;r:Радиус:м","v*v/r"],
+["Ұшу алыстығы","L = v₀² sin2α / g","L","м","v0:Бастапқы жылдамдық:м/с;al:Бұрыш α:°","v0*v0*Math.sin(2*al*Math.PI/180)/9.8"],
+["Көтерілу биіктігі","H = v₀² sin²α / 2g","H","м","v0:Бастапқы жылдамдық:м/с;al:Бұрыш α:°","v0*v0*Math.pow(Math.sin(al*Math.PI/180),2)/(2*9.8)"],
+["Ньютонның екінші заңы","F = m·a","F","Н","m:Масса:кг;a:Үдеу:м/с²","m*a"],
+["Бүкіләлемдік тартылыс","F = G·m₁m₂ / r²","F","Н","m1:m₁:кг;m2:m₂:кг;r:Қашықтық:м","6.6743e-11*m1*m2/(r*r)"],
+["Ауырлық күші / салмақ","P = m·g","P","Н","m:Масса:кг","m*9.8"],
+["Гук заңы","F = k·x","F","Н","k:Қатаңдық:Н/м;x:Созылу:м","k*x"],
+["Үйкеліс күші","F = μ·N","F","Н","mu:Үйкеліс коэффициенті μ:;N:Қалыпты қысым күші:Н","mu*N"],
+["Дене импульсі","p = m·v","p","кг·м/с","m:Масса:кг;v:Жылдамдық:м/с","m*v"],
+["Механикалық жұмыс","A = F·s·cosα","A","Дж","F:Күш:Н;s:Жол:м;al:Бұрыш α:°","F*s*Math.cos(al*Math.PI/180)"],
+["Қуат","N = A / t","N","Вт","A:Жұмыс:Дж;t:Уақыт:с","A/t"],
+["Кинетикалық энергия","Eₖ = mv²/2","Ek","Дж","m:Масса:кг;v:Жылдамдық:м/с","m*v*v/2"],
+["Потенциалдық энергия","Eₚ = m·g·h","Ep","Дж","m:Масса:кг;h:Биіктік:м","m*9.8*h"],
+["Қысым","p = F / S","p","Па","F:Күш:Н;S:Аудан:м²","F/S"],
+["Гидростатикалық қысым","p = ρ·g·h","p","Па","rho:Тығыздық:кг/м³;h:Тереңдік:м","rho*9.8*h"],
+["Архимед күші","Fₐ = ρ·g·V","FA","Н","rho:Сұйық тығыздығы:кг/м³;V:Батқан көлем:м³","rho*9.8*V"],
+["Гидравликалық пресс","F₂ = F₁·S₂ / S₁","F2","Н","F1:F₁:Н;S1:S₁:м²;S2:S₂:м²","F1*S2/S1"],
+["Менделеев–Клапейрон (қысым)","p = νRT / V","p","Па","nu:Зат мөлшері ν:моль;T:Температура:К;V:Көлем:м³","nu*8.314*T/V"],
+["Қыздыру жылу мөлшері","Q = c·m·Δt","Q","Дж","c:Меншікті жылусыйымдылық:Дж/(кг·°C);m:Масса:кг;dt:Δt:°C","c*m*dt"],
+["Карно ПӘК-і","η = (T₁ − T₂)/T₁ · 100%","eta","%","T1:Қыздырғыш T₁:К;T2:Суытқыш T₂:К","(T1-T2)/T1*100"],
+["Кулон заңы","F = k·q₁q₂ / r²","F","Н","q1:q₁:Кл;q2:q₂:Кл;r:Қашықтық:м","8.9875e9*Math.abs(q1*q2)/(r*r)"],
+["Электр өрісі кернеулігі","E = k·q / r²","E","В/м","q:Заряд:Кл;r:Қашықтық:м","8.9875e9*q/(r*r)"],
+["Конденсатор энергиясы","W = CU²/2","W","Дж","C:Сыйымдылық:Ф;U:Кернеу:В","C*U*U/2"],
+["Ом заңы","I = U / R","I","А","U:Кернеу:В;R:Кедергі:Ом","U/R"],
+["Өткізгіш кедергісі","R = ρ·l / S","R","Ом","rho:Меншікті кедергі:Ом·мм²/м;l:Ұзындық:м;S:Қима ауданы:мм²","rho*l/S"],
+["Ток қуаты","P = U·I","P","Вт","U:Кернеу:В;I:Ток күші:А","U*I"],
+["Джоуль–Ленц заңы","Q = I²·R·t","Q","Дж","I:Ток күші:А;R:Кедергі:Ом;t:Уақыт:с","I*I*R*t"],
+["Толық тізбек үшін Ом заңы","I = ε / (R + r)","I","А","e:ЭҚК ε:В;R:Сыртқы кедергі:Ом;r:Ішкі кедергі:Ом","e/(R+r)"],
+["Ампер күші","F = I·B·l·sinα","F","Н","I:Ток күші:А;B:Индукция:Тл;l:Ұзындық:м;al:Бұрыш α:°","I*B*l*Math.sin(al*Math.PI/180)"],
+["Лоренц күші","F = q·v·B·sinα","F","Н","q:Заряд:Кл;v:Жылдамдық:м/с;B:Индукция:Тл;al:Бұрыш α:°","q*v*B*Math.sin(al*Math.PI/180)"],
+["Магнит ағыны","Φ = B·S·cosα","Phi","Вб","B:Индукция:Тл;S:Аудан:м²;al:Бұрыш α:°","B*S*Math.cos(al*Math.PI/180)"],
+["Математикалық маятник периоды","T = 2π√(L / g)","T","с","L:Ұзындық:м","2*Math.PI*Math.sqrt(L/9.8)"],
+["Серіппелі маятник периоды","T = 2π√(m / k)","T","с","m:Масса:кг;k:Қатаңдық:Н/м","2*Math.PI*Math.sqrt(m/k)"],
+["Томсон формуласы","T = 2π√(L·C)","T","с","L:Индуктивтілік:Гн;C:Сыйымдылық:Ф","2*Math.PI*Math.sqrt(L*C)"],
+["Толқын ұзындығы","λ = v / ν","lam","м","v:Жылдамдық:м/с;nu:Жиілік ν:Гц","v/nu"],
+["Жұқа линза (кескін қашықтығы)","f = d·F / (d − F)","f","м","d:Заттан линзаға дейін:м;F:Фокус аралығы:м","d*F/(d-F)"],
+["Линзаның оптикалық күші","D = 1 / F","D","дптр","F:Фокус аралығы:м","1/F"],
+["Фотон энергиясы","E = h·ν","E","Дж","nu:Жиілік ν:Гц","6.626e-34*nu"],
+["Фотон импульсі","p = h / λ","p","кг·м/с","lam:Толқын ұзындығы λ:м","6.626e-34/lam"],
+["Радиоактивті ыдырау","N = N₀·2^(−t/T)","N","дана","N0:Бастапқы ядро саны N₀:;t:Уақыт:с;T:Жартылай ыдырау периоды:с","N0*2**(-t/T)"],
+["Масса мен энергия байланысы","E = m·c²","E","Дж","m:Масса:кг","m*(2.998e8)**2"],
+["Уақыттың ұзаруы","t = t₀ / √(1 − v²/c²)","t","с","t0:Меншікті уақыт t₀:с;v:Жылдамдық:м/с","t0/Math.sqrt(1-v*v/(2.998e8*2.998e8))"],
+["Заттың тығыздығы","ρ = m / V","rho","кг/м³","m:Масса:кг;V:Көлем:м³","m/V"],
+["Жылу қабылдау жылу мөлшері","Q = c·m·(t₂ − t₁)","Q","Дж","c:Меншікті жылусыйымдылық:Дж/(кг·°C);m:Масса:кг;t1:Бастапқы температура t₁:°C;t2:Соңғы температура t₂:°C","c*m*(t2-t1)"],
+["Балқу жылуы","Q = λ·m","Q","Дж","lam:Балқу жылуы λ:Дж/кг;m:Масса:кг","lam*m"],
+["Булану жылуы","Q = L·m","Q","Дж","L:Меншікті булану жылуы L:Дж/кг;m:Масса:кг","L*m"],
+["Отынның жану жылуы","Q = q·m","Q","Дж","q:Меншікті жану жылуы q:Дж/кг;m:Масса:кг","q*m"],
+["Күш моменті","M = F·d","M","Н·м","F:Күш:Н;d:Иін ұзындығы:м","F*d"],
+["Өздік индукция ЭҚК-і","ε = −L·(ΔI / Δt)","eps","В","L:Индуктивтілік:Гн;di:Ток өзгерісі ΔI:А;dt:Уақыт өзгерісі Δt:с","L*(di/dt)"],
+["Магнит өрісіндегі катушка энергиясы","W = L·I²/2","W","Дж","L:Индуктивтілік:Гн;I:Ток күші:А","L*I*I/2"],
+["Абсолют сыну көрсеткіші","n = c / v","n","бірліксіз","v:Жарық жылдамдығы сұйықта:м/с","299792458/v"]
+];
+
+const parseVars=s=>s.split(';').map(x=>x.split(':'));
+const fmt=x=>{const a=Math.abs(x);return(a!==0&&(a<1e-3||a>=1e7))?x.toExponential(4):String(Number(x.toPrecision(6)))};
+function renderSolvers(){
+ const q=$('solver-search').value.toLowerCase();
+ $('solver-container').innerHTML=SV.map((s,i)=>({s,i})).filter(o=>(o.s[0]+o.s[1]).toLowerCase().includes(q)).map(({s,i})=>
+ `<div class="solver-card"><h4>${esc(s[0])}</h4><div style="font-size:12px;color:var(--accent-color);font-family:monospace">${esc(s[1])}</div>
+ <div class="solver-inputs">${parseVars(s[4]).map(v=>`<input type="number" step="any" id="sv-${i}-${v[0]}" placeholder="${esc(v[1])}${v[2]?' ('+esc(v[2])+')':''}">`).join('')}</div>
+ <button onclick="runSolve(${i})" style="width:100%;font-size:12px;padding:8px">Шешу</button><div id="sv-res-${i}"></div></div>`).join('')||'<p class="muted">Табылмады</p>'}
+function runSolve(i){
+ const[n,f,r,u,vs,ex]=SV[i],V=parseVars(vs),out=$('sv-res-'+i),val={},given=[];
+ for(const[k,l,un] of V){const x=parseFloat($(`sv-${i}-${k}`).value);if(isNaN(x)){out.innerHTML='<div class="solution" style="color:var(--danger-color)">Барлық мәнді енгізіңіз!</div>';return}val[k]=x;given.push(`${esc(l)}: ${esc(k)} = ${x}${un?' '+esc(un):''}`)}
+ let res;try{res=Function(...Object.keys(val),'return '+ex)(...Object.values(val))}catch(e){res=NaN}
+ if(!isFinite(res)){out.innerHTML='<div class="solution" style="color:var(--danger-color)">Есептеу мүмкін емес.</div>';return}
+ const re=new RegExp('\\b('+Object.keys(val).join('|')+')\\b','g');
+ const sub=ex.replace(/Math\./g,'').replace(/\*\*/g,'^').replace(re,m=>val[m]<0?`(${val[m]})`:val[m]).replace(/\*/g, ' · ').replace(/PI/g,'π').replace(/pow/g,'');
+ out.innerHTML=`<div class="solution"><b>Берілгені:</b><br>${given.join('<br>')}<br><b>Табу керек:</b> ${esc(r)} = ?<br><b>Формула:</b> ${esc(f)}<br><b>Орнына қою:</b> ${esc(r)} = ${esc(sub)}<br><b>Жауабы:</b> <span class="ans">${esc(r)} = ${fmt(res)} ${esc(u)}</span></div>`}
+
+/* ҒАЛЫМДАР БӨЛІМІ */
+const baseScientists = [
+  {name:"Исаак Ньютон (Isaac Newton)", era:"Англия (1643 – 1727)", bio:"Исаак Ньютон — адамзат тарихындағы ең ұлы әрі ықпалды ғалымдардың бірі, классикалық физика мен механиканың негізін салушы. Ол өзінің әйгілі «Табиғи философияның математикалық бастамалары» атты еңбегінде механиканың үш негізгі заңын толық тұжырымдады. Бұл заңдар бүкіл әлемдегі денелердің қозғалысын түсіндірудің іргетасына айналды. Сондай-ақ ол әлемдік тартылыс заңын ашып, Күн жүйесіндегі планеталардың қозғалысын математикалық тұрғыдан дәлелдеді. Ғалым математика саласында дифференциалдық және интегралдық есептеу әдістерін дербес түрде қатар дамытты. Оптика саласында тәжірибелер жасап, ақ жарықтың спектрлік құрамын ашты және алғашқы айналы телескоп-рефлекторды құрастырды. Оның ғылыми еңбектері ғасырлар бойы ғылымның даму бағытын айқындап, заманауи жаратылыстанудың қалыптасуына орасан зор үлес қосты. Ньютон өз өмірін ғылымға арнап қана қоймай, оптика, астрономия және математика салаларында революциялық жаңалықтар жасады. Оның ғылыми мұрасы бүгінгі күні де барлық жетекші университеттерде терең оқытылады және инженерлік есептеулерде кеңінен қолданылады."},
+  {name:"Альберт Эйнштейн (Albert Einstein)", era:"Германия / АҚШ (1879 – 1955)", bio:"Альберт Эйнштейн — ХХ ғасырдың ең көрнекті физик-теоретигі және қазіргі заманғы физиканың негізін қалаушылардың бірі. Ол кеңістік пен уақыт түсініктерін түбегейлі өзгерткен арнайы және жалпы салыстырмалылық теорияларын жасады. Оның атақты E=mc² формуласы масса мен энергияның өзара байланысын дәлелдеп, ядролық энергетиканың дамуына жол ашты. 1921 жылы ол фотоэффект құбылысын теориялық тұрғыдан түсіндіргені үшін физика бойынша Нобель сыйлығына ие болды. Эйнштейн сонымен қатар кванттық теорияның дамуына айтарлықтай үлес қосып, жарықтың корпускулалық-толқындық табиғатын зерттеді. Оның ғылыми көзқарастары мен философиялық ойлары физика ғылымының парадигмасын толығымен өзгертті. Ғалым өмірінің соңғы жылдарында барлық физикалық өрістерді біріктіретін бірыңғай өріс теориясын жасаумен айналысты. Эйнштейннің есімі бүкіл әлемде данышпандық пен ғылыми жаңашылдықтың символына айналды. Оның ғылыми еңбектері мен мақалалары ғарыштың құрылысы мен қара құрдымдарды зерттеуде басты құрал болып табылады."},
+  {name:"Архимед (Archimedes)", era:"Ежелгі Греция (б.з.д. 287 – 212)", bio:"Архимед — антика дәуірінің ең ұлы математигі, физигі және инженер-өнертапқышы. Ол гидростатиканың іргетасын қалап, сұйыққа батырылған денеге әсер ететін кері итеруші күшті анықтайтын әйгілі Архимед заңын ашты. Механикада иіндіктердің тепе-теңдік ережелерін математикалық тұрғыдан дәлелдеді және «Маған тірек беріңдер, мен Жерді орнынан қозғалтамын» деген қанатты сөз қалдырды. Ол әскери және бейбіт мақсаттағы көптеген механизмдерді, соның ішінде су көтеретін Архимед винтін ойлап тапты. Сиракуз қаласын қорғау кезінде оның ашқан жаңалықтары мен механикалық құрылғылары жау әскеріне қарсы сәтті қолданылды. Математика саласында шеңбердің ұзындығы мен шардың көлемін есептеу тәсілдерін дамытып, Пи санның мәнін дәлдікпен бағалады. Архимедтің зерттеулері эксперименттік физика мен математикалық талдаудың бастамасы болды. Оның өмір жолы мен ғылыми жетістіктері туралы тарихи деректер бүгінгі күнге дейін үлкен қызығушылық тудырады. Оның ғылымға қосқан үлесі заманауи гидродинамика мен машина жасау салаларының негізі қаланды."},
+  {name:"Галилео Галилей (Galileo Galilei)", era:"Италия (1564 – 1642)", bio:"Галилео Галилей — заманауи астрономия мен эксперименттік физиканың негізін қалаушы ұлы итальян ғалымы. Ол өз қолымен жетілдірілген телескоп жасап, аспан әлемін тұңғыш рет ғылыми түрде бақылады. Осы бақылаулардың нәтижесінде ол Юпитердің төрт серігін, Күндегі дақтарды және Айдың бетіндегі кратерлерді ашты. Механика саласында еркін түсу заңдарын, денелердің инерция принципін және маятник тербелістерінің заңдылықтарын зерттеді. Ол Аристотельдің тұжырымдарын тәжірибе арқылы теріске шығарып, ғылыми зерттеулерде тәжірибе мен бақылау басты рөл атқаруы тиіс екенін дәлелдеді. Жердің Күнді айналатынын қолдағаны үшін шіркеу тарапынан қуғынға ұшырағанына қарамастан, өз көзқарастарынан бас тартпады. Оның «Диалогтар» атты еңбегі физика мен астрономияның дамуына үлкен серпін берді. Галилейдің ғылыми әдіснамасы кейіннен Исаак Ньютон мен басқа да ғұламалардың жаңалықтарына жол ашты. Оның есімі ғылыми шындық үшін күрескен ержүрек зерттеуші ретінде тарихта мәңгі қалды."},
+  {name:"Майкл Фарадей (Michael Faraday)", era:"Ұлыбритания (1791 – 1867)", bio:"Майкл Фарадей — электромагнетизм мен электрохимия салаларында революциялық жаңалықтар ашқан ағылшынның көрнекті физигі мен химигі. Ол 1831 жылы электромагниттік индукция құбылысын ашып, электр тогын механикалық қозғалыс арқылы өндіруге болатынын дәлелдеді. Осы жаңалықтың негізінде алғашқы электр генераторлары мен электр қозғалтқыштерінің жұмыс істеу принципі жасалды. Химияда электролиз заңдарын тұжырымдап, бензолды алғашқылардың бірі болып бөліп алды. Физикаға өріс ұғымын («электрлік және магниттік өріс сызықтары») енгізіп, электромагниттік өріс теориясына жол ашты. Фарадей кедей отбасынан шығып, өз бетімен білім алғанына қарамастан, корольдік институттың атақты профессоры атағына қол жеткізді. Оның ғылыми тәжірибелері мен дәрістері қоғам арасында ғылымды насихаттауда ерекше орын алды. Оның еңбектері Джеймс Клерк Максвеллге электромагниттік өрістің біртұтас математикалық теориясын құруға негіз болды. Фарадейдің мұрасы қазіргі электротехника мен телекоммуникация технологияларының негізгі тірегі болып табылады."}
+];
+
+const extraNames = [
+  "Джеймс Клерк Максвелл","Никола Тесла","Нильс Бор","Макс Планк","Мария Склодовская-Кюри",
+  "Эрнест Резерфорд","Вернер Гейзенберг","Эрвин Шрёдингер","Ричард Фейнман","Стивен Хокинг",
+  "Блез Паскаль","Шарль Кулон","Георг Ом","Алессандро Вольта","Андре-Мари Ампер",
+  "Генрих Герц","Вильгельм Рентген","Анри Беккерель","Дмитрий Менделеев","Людвиг Больцман",
+  "Роберт Гук","Христиан Гюйгенс","Евангелиста Торричелли","Даниил Бернулли","Джеймс Джоуль",
+  "Генрих Ленц","Густав Кирхгоф","Лорд Кельвин","Томас Юнг","Огюстен Френель",
+  "Жозеф Гей-Люссак","Амедео Авогадро","Вильгельм Вин","Ван-дер-Ваальс","Лев Ландау",
+  "Роберт Милликен","Артур Комптон","Луи де Бройль","Поль Дирак","Энрико Ферми",
+  "Питер Хиггс","Джон Бардин","Александр Попов","Кип Торн","Макс Борн",
+  "Поль Ланжевен","Петр Лебедев","Александр Столетов","Игорь Курчатов","Сергей Королев"
+];
+
+extraNames.forEach(n => {
+  baseScientists.push({
+    name: n,
+    era: "Физика тарихы (XIX – XX ғасырлар)",
+    bio: `${n} — әлемдік ғылым мен физиканың дамуына өлшеусіз үлес қосқан аса көрнекті ғалымдардың бірі. Ол өз өмірі мен саналы ғұмырын табиғат құбылыстарын терең зерттеуге, жаңа физикалық заңдылықтарды ашуға арнады. Оның зертханалық тәжірибелері мен теориялық тұжырымдары сол дәуірдегі ғылыми көзқарастарды түбегейлі өзгертті. Ғалым ашқан жаңалықтар мен формулалар бүгінгі таңда әлемнің түкпір-түкпіріндегі университеттерде оқытылады. Оның ғылыми мұрасы мен жазған еңбектері заманауи жоғары технологиялардың, энергетиканың және байланыс жүйелерінің дамуына тікелей ықпал етті. Әріптестері мен шәкірттері оның еңбекқорлығы мен ғылымға деген адалдығын әрқашан жоғары бағалаған. Ол өз саласы бойынша халықаралық ғылыми қоғамдастықта үлкен беделге ие болып, бірнеше беделді сыйлықтар мен марапаттарға ие болды. Ғалымның есімі ғылым шежіресінде алтын әріптермен жазылып, кейінгі ұрпаққа үлкен үлгі болды. Бүгінгі заманауи қондырғылар мен физикалық құрылғылардың жұмыс істеуі тікелей осы тұлғаның еңбектеріне негізделген. Оның өмір жолы мен ғылыми жетістіктері жас зерттеушілерді жаңа жаңалықтар ашуға әрдайым шабыттандырады.`
+  });
+});
+
+const scientistsBio = baseScientists;
+
+function filterScientists(){
+  const q = $('scientist-search').value.toLowerCase();
+  $('scientists-container').innerHTML = scientistsBio
+    .filter(s => s.name.toLowerCase().includes(q) || s.bio.toLowerCase().includes(q))
+    .map(s => `<div class="bio-card"><h4>${esc(s.name)}</h4><div class="era">${esc(s.era)}</div><p>${esc(s.bio)}</p></div>`)
+    .join('');
+}
+
+/* ВИРУТУАЛДЫ ЗЕРТХАНА */
+const labConfigs=[
+{id:1,name:"1. Математикалық маятник",formula:"T = 2π √(L / g)",inputs:"l:Ұзындық L:м:0.5:3:0.1:1.5;g:Ауырлық g:м/с²:1.6:20:0.5:9.8"},
+{id:2,name:"2. Серіппелі маятник",formula:"T = 2π √(m / k)",inputs:"m:Масса m:кг:0.5:5:0.5:2;k:Қатаңдық k:Н/м:10:100:5:40"},
+{id:3,name:"3. Бұрышпен лақтырылған дене",formula:"L = v₀² sin2α / g",inputs:"v:Жылдамдық v₀:м/с:5:35:1:20;a:Бұрыш α:°:15:75:5:45"},
+{id:4,name:"4. Ом заңы",formula:"I = U / R",inputs:"u:Кернеу U:В:2:24:2:12;r:Кедергі R:Ом:2:20:1:6"},
+{id:5,name:"5. Гидравликалық пресс",formula:"F₂ = F₁·S₂/S₁",inputs:"f1:Күш F₁:Н:5:50:5:10;s2:S₂/S₁:есе:1:5:0.5:2.5"},
+{id:6,name:"6. Толқын",formula:"λ = v / ν",inputs:"nu:Жиілік ν:Гц:1:10:1:3;amp:Амплитуда A:см:5:30:5:15"}];
+const labInputs=c=>c.inputs.split(';').map(x=>{const p=x.split(':');return{id:p[0],name:p[1],unit:p[2],min:p[3],max:p[4],step:p[5],val:parseFloat(p[6])}});
+function renderLabs(){
+ $('labs-grid').innerHTML=labConfigs.map(cfg=>{
+  const ins=labInputs(cfg),st={isRunning:true,time:0};ins.forEach(i=>st[i.id]=i.val);labStates[cfg.id]=st;
+  return `<div class="lab-canvas-container"><h4 style="color:var(--accent-color);font-size:15px;margin-bottom:6px">${cfg.name}</h4><div class="muted" style="font-family:monospace;margin-bottom:8px">${cfg.formula}</div><canvas id="canvas-lab-${cfg.id}"></canvas>
+  <div class="lab-controls">${ins.map(i=>`<div class="lab-control-group"><label>${i.name}: <span id="val-lab-${cfg.id}-${i.id}" style="color:var(--accent-color);font-weight:bold">${i.val}</span> ${i.unit}</label><input type="range" min="${i.min}" max="${i.max}" step="${i.step}" value="${i.val}" oninput="labSet(${cfg.id},'${i.id}',this.value)" style="width:130px"></div>`).join('')}
+  <div class="lab-btn-group"><button id="btn-toggle-lab-${cfg.id}" onclick="toggleLab(${cfg.id})">Кідірту</button><button onclick="labStates[${cfg.id}].time=0" style="background:rgba(255,255,255,.08);color:#fff">Басынан</button></div></div></div>`}).join('');
+ setTimeout(()=>labConfigs.forEach(c=>startLab(c.id)),100)}
+function labSet(id,p,v){labStates[id][p]=parseFloat(v);$(`val-lab-${id}-${p}`).innerText=v}
+function toggleLab(id){const s=labStates[id];s.isRunning=!s.isRunning;$('btn-toggle-lab-'+id).innerText=s.isRunning?'Кідірту':'Жалғастыру'}
+function startLab(id){
+ const cv=$('canvas-lab-'+id);if(!cv)return;const x=cv.getContext('2d');cv.width=320;cv.height=200;
+ (function loop(){
+  const s=labStates[id];if(s.isRunning)s.time+=.06;const t=s.time;x.clearRect(0,0,320,200);x.lineWidth=2;x.font='11px sans-serif';
+  x.strokeStyle='rgba(255,255,255,0.03)';x.beginPath();for(let i=0;i<320;i+=20){x.moveTo(i,0);x.lineTo(i,200)}for(let j=0;j<200;j+=20){x.moveTo(0,j);x.lineTo(320,j)}x.stroke();
+  
+  if(id===1){const a=.7*Math.sin(t*Math.sqrt(s.g/s.l)),bx=160+Math.sin(a)*s.l*50,by=25+Math.cos(a)*s.l*50;x.strokeStyle='#00f2fe';x.beginPath();x.moveTo(160,25);x.lineTo(bx,by);x.stroke();x.fillStyle='#00e676';x.beginPath();x.arc(bx,by,11,0,7);x.fill()}
+  else if(id===2){const y=100+Math.sin(t*Math.sqrt(s.k/s.m))*40;x.strokeStyle='#00f2fe';x.beginPath();x.moveTo(160,20);for(let k=0;k<12;k++)x.lineTo(160+(k%2?-14:14),20+k*((y-20)/12));x.lineTo(160,y);x.stroke();x.fillStyle='#ff4b5c';x.fillRect(145-s.m*3,y,30+s.m*6,26)}
+  else if(id===3){const r=s.a*Math.PI/180,q=t%4,px=30+s.v*Math.cos(r)*q*14;let py=170-(s.v*Math.sin(r)*q*14-.5*9.8*q*q*14);if(py>170)py=170;x.strokeStyle='#2a354f';x.beginPath();x.moveTo(20,170);x.lineTo(300,170);x.stroke();x.fillStyle='#00f2fe';x.beginPath();x.arc(px,py,7,0,7);x.fill()}
+  else if(id===4){const I=s.u/s.r;x.strokeStyle='#00e676';x.strokeRect(40,45,240,110);x.fillStyle='#ff4b5c';x.fillRect(40,80,10,35);x.fillStyle='#fff';x.fillText(`U = ${s.u} В`,25,35);x.strokeStyle='#00f2fe';x.strokeRect(140,45,50,25);x.fillText(`R = ${s.r} Ом`,140,38);x.fillStyle='#00f2fe';x.beginPath();x.arc(40+(t*I*15)%240,45,5,0,7);x.fill();x.fillStyle='#00e676';x.fillText(`Ток күші I = ${I.toFixed(2)} А`,90,175)}
+  else if(id===5){const d=Math.sin(t*2)*18;x.fillStyle='#2a354f';x.fillRect(70,70-d,35,80+d);x.fillRect(195,95-d*s.s2,55,55+d*s.s2);x.fillStyle='#00e676';x.fillRect(190,85-d*s.s2,65,14);x.fillStyle='#fff';x.fillText(`F₂ = ${(s.f1*s.s2).toFixed(1)} Н`,185,62)}
+  else{x.strokeStyle='#00f2fe';x.beginPath();for(let i=0;i<320;i+=2){const y=100+Math.sin(i*.04*s.nu+t*4)*s.amp;i?x.lineTo(i,y):x.moveTo(i,y)}x.stroke()}
+  labAnim[id]=requestAnimationFrame(loop)})()}
+
+window.onload=async ()=>{
+  const savedUser = localStorage.getItem('physx_current_user');
+  if(savedUser){
+    const res = await getUserFromCloud(savedUser);
+    if(res.user){
+      currentUser = res.user;
+      initUserSession();
+      return;
+    }
+  }
+  showAuthPage('login');
+};
+</script>
+</body>
+</html>
