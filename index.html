@@ -6,6 +6,7 @@
 <meta name="author" content="Salybek Yersultan, Zhenis Ayan">
 <meta name="description" content="Бұл сайттың авторлары — Salybek Yersultan, Zhenis Ayan.">
 <title>PhysX — Физика Порталы</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><g fill='none' stroke='%2300f2fe' stroke-width='3'><ellipse cx='32' cy='32' rx='28' ry='11'/><ellipse cx='32' cy='32' rx='28' ry='11' transform='rotate(60 32 32)'/><ellipse cx='32' cy='32' rx='28' ry='11' transform='rotate(120 32 32)'/></g><circle cx='32' cy='32' r='5' fill='%2300f2fe'/></svg>">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <!-- Supabase SDK қосылды -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -80,6 +81,7 @@ canvas{background:#060911;border-radius:10px;border:1px solid var(--border-color
 .solver-inputs input{font-size:13px;padding:7px 10px}
 .solution{margin-top:10px;font-size:13px;line-height:1.8;background:rgba(0,230,118,.07);border:1px solid rgba(0,230,118,.3);padding:10px;border-radius:8px;word-break:break-word}
 .solution b{color:var(--accent-color)}.solution .ans{color:var(--success-color);font-weight:bold;font-size:15px}
+.lang-switch{display:flex;gap:4px}.lang-switch button{padding:4px 9px;font-size:11px;background:transparent;color:var(--text-muted);border:1px solid var(--border-color)}.lang-switch button.on{background:var(--accent-gradient);color:#000;border-color:transparent}.auth-lang{position:fixed;top:12px;right:12px;z-index:200}#main-header[style*="flex"]~.auth-lang{display:none}
 @media(max-width:768px){
 header{flex-direction:column;align-items:stretch;padding:10px}
 nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav button{white-space:nowrap;flex:0 0 auto}
@@ -102,12 +104,14 @@ nav{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}nav button{white-space:n
     <button onclick="showPage('calc')" id="nav-calc"><i class="fa-solid fa-calculator"></i> Калькулятор</button>
     <button onclick="showPage('scientists')" id="nav-scientists"><i class="fa-solid fa-user-graduate"></i> Ғалымдар</button>
   </nav>
+  <div class="lang-switch"></div>
   <div class="user-profile-badge">
     <img id="header-avatar" class="avatar-img" alt="Avatar">
     <div style="display:flex;flex-direction:column"><span id="header-fullname" style="font-weight:bold;font-size:13px">-</span><span id="header-username" class="muted">-</span></div>
     <button onclick="logout()" style="padding:4px 8px;background:rgba(255,75,92,.2);color:var(--danger-color);font-size:11px">Шығу</button>
   </div>
 </header>
+<div class="lang-switch auth-lang"></div>
 
 <section id="page-login" class="page-section active"><div class="auth-container">
   <i class="fa-solid fa-atom" style="font-size:45px;color:var(--accent-color)"></i><h1>PhysX</h1>
@@ -467,7 +471,7 @@ async function clearChat(){
   renderChatMessages();
 }
 function togglePicker(){const p=$('picker');p.style.display=p.style.display==='none'?'block':'none'}
-function initPicker(){$('chat-sec').innerHTML=Object.keys(DB).map(s=>`<option>${esc(s)}</option>`).join('');renderPicker()}
+function initPicker(){$('chat-sec').innerHTML=Object.keys(DB).map(s=>`<option value="${esc(s)}">${esc(s)}</option>`).join('');renderPicker()}
 function renderPicker(){const s=$('chat-sec').value;$('chat-presets').innerHTML=FL.map((f,i)=>f.sec===s?`<button onclick="pickF(${i})">${esc(f.n)}</button>`:'').join('')}
 function pickF(i){pushMsg(`📐 ${FL[i].n}: ${FL[i].m}`,true)}
 
@@ -770,6 +774,103 @@ function startLab(id){
   else{x.strokeStyle='#00f2fe';x.beginPath();for(let i=0;i<320;i+=2){const y=100+Math.sin(i*.04*s.nu+t*4)*s.amp;i?x.lineTo(i,y):x.moveTo(i,y)}x.stroke()}
   labAnim[id]=requestAnimationFrame(loop)})()}
 
+/* ===== I18N: ҚАЗ / РУС / ENG ===== */
+const LANGS={kk:'ҚАЗ',ru:'РУС',en:'ENG'};
+const T={
+'PhysX — Физика Порталы':['PhysX — Физический портал','PhysX — Physics Portal'],
+'Басты бет':['Главная','Home'],'Виртуалды зертхана':['Виртуальная лаборатория','Virtual Lab'],
+'Формулалар':['Формулы','Formulas'],'Есептеуіш':['Решатель','Solver'],'Калькулятор':['Калькулятор','Calculator'],
+'Ғалымдар':['Учёные','Scientists'],'Шығу':['Выйти','Log out'],
+'Физиктерге арналған интерактивті портал':['Интерактивный портал для физиков','Interactive portal for physicists'],
+'Логин':['Логин','Username'],'Пароль':['Пароль','Password'],'Кіру':['Войти','Log in'],
+'Парольді ұмыттыңыз ба?':['Забыли пароль?','Forgot password?'],'Тіркелмегенсіз бе?':['Нет аккаунта?','No account yet?'],
+'Тіркелу':['Регистрация','Sign up'],'Аты-жөніңіз':['Имя и фамилия','Full name'],
+'Логин (мысалы: user123)':['Логин (например: user123)','Username (e.g. user123)'],
+'Тіркелуді аяқтау':['Завершить регистрацию','Complete sign-up'],'Тіркелгенсіз бе?':['Уже есть аккаунт?','Already registered?'],
+'Парольді қалпына келтіру':['Восстановление пароля','Reset password'],'Жаңа пароль':['Новый пароль','New password'],
+'Парольді өзгерту':['Сменить пароль','Change password'],'Оралу':['Назад','Back'],
+'Аватарды жүктеу':['Загрузить аватар','Upload avatar'],'Дос іздеу':['Поиск друзей','Find friends'],
+'Логин немесе аты...':['Логин или имя...','Username or name...'],'Шақырулар':['Приглашения','Requests'],
+'Достар тізімі':['Список друзей','Friends list'],'Досты таңдаңыз':['Выберите друга','Select a friend'],'Онлайн':['Онлайн','Online'],
+'🎲 Есеп жіберу':['🎲 Отправить задачу','🎲 Send a problem'],'💡 Физика факті':['💡 Факт из физики','💡 Physics fact'],
+'✅ Жауап жіберу':['✅ Отправить ответ','✅ Send answer'],'📐 Формула':['📐 Формула','📐 Formula'],
+'🗑 Тазалау':['🗑 Очистить','🗑 Clear'],'Хабарламаңыз...':['Ваше сообщение...','Your message...'],
+'Серверге қосыла алмадық. Интернетті тексеріп, қайта көріңіз.':['Не удалось подключиться к серверу. Проверьте интернет и попробуйте снова.','Could not connect to the server. Check your internet and try again.'],
+'Бұл логин бос емес!':['Этот логин уже занят!','This username is already taken!'],
+'Тіркелу сәтсіз аяқталды. Қайта көріңіз.':['Регистрация не удалась. Попробуйте ещё раз.','Registration failed. Please try again.'],
+'Тіркелу сәтті аяқталды!':['Регистрация прошла успешно!','Registration completed successfully!'],
+'Логин немесе пароль қате!':['Неверный логин или пароль!','Incorrect username or password!'],
+'Пароль жаңартылды!':['Пароль обновлён!','Password updated!'],'Мұндай логин табылмады!':['Такой логин не найден!','Username not found!'],
+'Достық шақыруы жіберілді!':['Приглашение в друзья отправлено!','Friend request sent!'],
+'Алдымен досыңызды таңдаңыз':['Сначала выберите друга','Please select a friend first'],
+'Жауабыңызды жазып, қайта басыңыз':['Напишите ответ и нажмите снова','Type your answer and press again'],
+'Чатты тазалайсыз ба?':['Очистить чат?','Clear the chat?'],
+'Іздеу үшін сөз енгізіңіз':['Введите слово для поиска','Enter a search term'],
+'Пайдаланушы табылмады':['Пользователь не найден','User not found'],
+'Доссыз':['В друзьях','Friends'],'Жіберілді':['Отправлено','Sent'],'Қосу':['Добавить','Add'],'Қабылдау':['Принять','Accept'],
+'Өтініштер жоқ ст':['Запросов нет','No requests'],'Достарыңыз жоқ':['У вас нет друзей','You have no friends yet'],
+'Сөйлесуді бастау үшін досыңызды таңдаңыз':['Выберите друга, чтобы начать чат','Select a friend to start chatting'],
+'Хабарлама жазыңыз!':['Напишите сообщение!','Write a message!'],
+'Жетілдірілген визуалды физикалық зертхана. Параметрлерді өзгертіп, нақты уақыттағы өзгерістерді бақылаңыз.':['Усовершенствованная визуальная физическая лаборатория. Меняйте параметры и наблюдайте изменения в реальном времени.','An advanced visual physics lab. Change the parameters and watch the results in real time.'],
+'1. Математикалық маятник':['1. Математический маятник','1. Simple pendulum'],'2. Серіппелі маятник':['2. Пружинный маятник','2. Spring pendulum'],
+'3. Бұрышпен лақтырылған дене':['3. Тело, брошенное под углом','3. Projectile motion'],"4. Ом заңы":['4. Закон Ома',"4. Ohm's law"],
+'5. Гидравликалық пресс':['5. Гидравлический пресс','5. Hydraulic press'],'6. Толқын':['6. Волна','6. Wave'],
+'Кідірту':['Пауза','Pause'],'Жалғастыру':['Продолжить','Resume'],'Басынан':['Сначала','Restart'],
+'Ұзындық L':['Длина L','Length L'],'Ауырлық g':['Ускорение g','Gravity g'],'Масса m':['Масса m','Mass m'],
+'Қатаңдық k':['Жёсткость k','Stiffness k'],'Жылдамдық v₀':['Скорость v₀','Speed v₀'],'Бұрыш α':['Угол α','Angle α'],
+'Кернеу U':['Напряжение U','Voltage U'],'Кедергі R':['Сопротивление R','Resistance R'],'Күш F₁':['Сила F₁','Force F₁'],
+'Жиілік ν':['Частота ν','Frequency ν'],'Амплитуда A':['Амплитуда A','Amplitude A'],
+'м':['','m'],'м/с²':['','m/s²'],'кг':['','kg'],'Н/м':['','N/m'],'м/с':['','m/s'],'В':['','V'],'Ом':['','Ω'],'Н':['','N'],'Гц':['','Hz'],'см':['','cm'],'есе':['раз','×'],
+'Физикалық формулалар базасы':['База физических формул','Physics formula database'],
+'Формула аты немесе өрнек бойынша іздеу...':['Поиск по названию или выражению формулы...','Search by formula name or expression...'],
+'Барлығы':['Все','All'],'Ештеңе табылмады':['Ничего не найдено','Nothing found'],
+'Механика':['Механика','Mechanics'],'Молекулалық физика және термодинамика':['Молекулярная физика и термодинамика','Molecular physics and thermodynamics'],
+'Электродинамика':['Электродинамика','Electrodynamics'],'Оптика':['Оптика','Optics'],'Атомдық физика':['Атомная физика','Atomic physics'],
+'Ядролық физика':['Ядерная физика','Nuclear physics'],'Кванттық физика және салыстырмалылық':['Квантовая физика и относительность','Quantum physics and relativity'],
+'Кинематика':['Кинематика','Kinematics'],'Динамика':['Динамика','Dynamics'],'Статика және гидростатика':['Статика и гидростатика','Statics and hydrostatics'],
+'Молекулалық-кинетикалық теория':['Молекулярно-кинетическая теория','Molecular kinetic theory'],'Термодинамика':['Термодинамика','Thermodynamics'],
+'Электростатика':['Электростатика','Electrostatics'],'Тұрақты ток':['Постоянный ток','Direct current'],
+'Магнетизм және индукция':['Магнетизм и индукция','Magnetism and induction'],'Тербелістер мен толқындар':['Колебания и волны','Oscillations and waves'],
+'Геометриялық және толқындық оптика':['Геометрическая и волновая оптика','Geometric and wave optics'],'Атом және фотондар':['Атом и фотоны','Atom and photons'],
+'Атом ядросы':['Атомное ядро','Atomic nucleus'],'Кванттық физика':['Квантовая физика','Quantum physics'],'Салыстырмалылық теориясы':['Теория относительности','Theory of relativity'],
+'Есептеуіш ( формулалар базасы)':['Решатель (база формул)','Solver (formula base)'],
+'Қажетті формула немесе шаманы таңдап, мәндерді енгізіңіз — сайт «Берілгені → Формула → Шешуі → Жауабы» түрінде толық есептеп береді.':['Выберите нужную формулу или величину и введите значения — сайт полностью решит задачу в виде «Дано → Формула → Решение → Ответ».','Choose a formula or quantity and enter the values — the site will solve it step by step as “Given → Formula → Solution → Answer”.'],
+'Формуланы іздеу (мысалы: Жылдамдық, Қуат, Импульс...)...':['Поиск формулы (например: Скорость, Мощность, Импульс...)...','Search a formula (e.g. Speed, Power, Momentum...)...'],
+'Шешу':['Решить','Solve'],'Табылмады':['Не найдено','Not found'],'Берілгені':['Дано','Given'],'Табу керек':['Найти','Find'],
+'Формула':['Формула','Formula'],'Орнына қою':['Подстановка','Substitution'],'Жауабы':['Ответ','Answer'],
+'Барлық мәнді енгізіңіз!':['Введите все значения!','Enter all values!'],'Есептеу мүмкін емес.':['Вычисление невозможно.','Cannot be calculated.'],
+'Физик ғалымдар өмірбаяны':['Биографии учёных-физиков','Biographies of physicist scientists'],
+'Ғалымның атын іздеу...':['Поиск учёного по имени...','Search scientist by name...']
+};
+let LANG=localStorage.getItem('physx_lang')||'kk';if(!LANGS[LANG])LANG='kk';
+const TITLE_KK=document.title;
+const tr=s=>{const k=String(s).trim();if(LANG==='kk'||!k)return s;const i=LANG==='ru'?0:1;
+ const f=x=>{const v=Object.prototype.hasOwnProperty.call(T,x)?T[x]:0;return v&&v[i]||null};
+ let r=f(k);
+ if(r==null&&k.includes(' › '))r=k.split(' › ').map(p=>f(p)||p).join(' › ');
+ if(r==null&&k.endsWith(':')){const v=f(k.slice(0,-1));if(v)r=v+':'}
+ if(r==null&&/^Барлығы \(/.test(k)&&f('Барлығы'))r=f('Барлығы')+k.slice(7);
+ return r==null?s:s.replace(k,()=>r)};
+function trTree(root){
+ if(root.nodeType===3){if(root.parentNode&&root.parentNode.nodeName!=='SCRIPT'){if(root._o===undefined)root._o=root.nodeValue;const v=tr(root._o);if(root.nodeValue!==v)root.nodeValue=v}return}
+ if(root.nodeType!==1)return;
+ const w=document.createTreeWalker(root,5);let n=root;
+ do{
+  if(n.nodeType===3){if(n.parentNode.nodeName!=='SCRIPT'){if(n._o===undefined)n._o=n.nodeValue;const v=tr(n._o);if(n.nodeValue!==v)n.nodeValue=v}}
+  else if(n.hasAttribute&&n.hasAttribute('placeholder')){if(n._p===undefined)n._p=n.getAttribute('placeholder');n.setAttribute('placeholder',tr(n._p))}
+ }while(n=w.nextNode());
+}
+const _alert=window.alert.bind(window),_confirm=window.confirm.bind(window);
+window.alert=m=>_alert(tr(m));window.confirm=m=>_confirm(tr(m));
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(trTree))).observe(document.body,{childList:true,subtree:true});
+function setLang(l){
+ LANG=l;localStorage.setItem('physx_lang',l);document.documentElement.lang=l;
+ document.querySelectorAll('.lang-switch').forEach(el=>el.innerHTML=Object.keys(LANGS).map(k=>`<button class="${k===l?'on':''}" onclick="setLang('${k}')">${LANGS[k]}</button>`).join(''));
+ document.title=tr(TITLE_KK);trTree(document.body);
+}
+setLang(LANG);
+/* ===== /I18N ===== */
+
 window.onload=async ()=>{
   const savedUser = localStorage.getItem('physx_current_user');
   if(savedUser){
@@ -780,6 +881,11 @@ window.onload=async ()=>{
       return;
     }
   }
+  showAuthPage('login');
+};
+</script>
+</body>
+</html>
   showAuthPage('login');
 };
 </script>
